@@ -1,1 +1,0 @@
-print ("Meu primeiro projeto no github")

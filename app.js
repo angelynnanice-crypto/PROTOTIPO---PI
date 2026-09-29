@@ -1,4 +1,3 @@
-// Estado Global da Aplicação
 const State = {
   user: { name: 'Servidor Público', role: 'analista' },
   protocols: [
@@ -8,47 +7,88 @@ const State = {
   ]
 };
 
-// Controle de Interface e Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+  loadDataFromStorage();
+  initAuthTabs();
   initLogin();
+  initRegister();
   initNavigation();
   initForms();
   initFilters();
-  loadDataFromStorage();
 });
 
-function initLogin() {
-  const chips = document.querySelectorAll('.role-chip');
+function initAuthTabs() {
+  const tabLogin = document.getElementById('tab-login-btn');
+  const tabRegister = document.getElementById('tab-register-btn');
+  const formLogin = document.getElementById('login-form');
+  const formRegister = document.getElementById('register-form');
+
+  tabLogin.addEventListener('click', () => {
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    formLogin.classList.add('active');
+    formRegister.classList.remove('active');
+  });
+
+  tabRegister.addEventListener('click', () => {
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+    formRegister.classList.add('active');
+    formLogin.classList.remove('active');
+  });
+
+  // Chips de seleção de perfil no cadastro
+  const chips = document.querySelectorAll('#register-form .role-chip');
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
-      document.getElementById('login-name').value = chip.dataset.role === 'gestor' ? 'Gestor Master' : 'Servidor Público';
     });
   });
+}
 
+function initLogin() {
   document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const nameInput = document.getElementById('login-name').value.trim();
-    const activeChip = document.querySelector('.role-chip.active');
-    State.user.name = nameInput || 'Usuário';
-    State.user.role = activeChip ? activeChip.dataset.role : 'analista';
+    const email = document.getElementById('login-email').value.trim();
+    
+    State.user.name = email.split('@')[0] || 'Servidor Público';
+    State.user.name = State.user.name.charAt(0).toUpperCase() + State.user.name.slice(1);
+    State.user.role = 'analista';
 
-    document.getElementById('sidebar-user-name').textContent = State.user.name;
-    document.getElementById('sidebar-role-label').textContent = `Perfil: ${State.user.role}`;
-
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-
-    renderApp();
+    updateUserSession();
     showToast('Sessão iniciada com sucesso.');
   });
 
   document.getElementById('logout-btn').addEventListener('click', () => {
     document.getElementById('app').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('auth-screen').style.display = 'flex';
     showToast('Sessão encerrada.');
   });
+}
+
+function initRegister() {
+  document.getElementById('register-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('reg-name').value.trim();
+    const activeChip = document.querySelector('#register-form .role-chip.active');
+
+    State.user.name = name || 'Novo Usuário';
+    State.user.role = activeChip ? activeChip.dataset.role : 'analista';
+
+    updateUserSession();
+    showToast('Cadastro realizado e sessão iniciada!');
+  });
+}
+
+function updateUserSession() {
+  document.getElementById('sidebar-user-name').textContent = State.user.name;
+  document.getElementById('sidebar-role-label').textContent = `Perfil: ${State.user.role}`;
+
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  renderApp();
 }
 
 function initNavigation() {
@@ -93,7 +133,6 @@ function initForms() {
     document.getElementById('new-protocol-form').reset();
     showToast(`Protocolo ${newProtocol.id} gerado com sucesso.`);
     
-    // Redireciona para a aba de protocolos
     document.querySelector('[data-target="view-protocolos"]').click();
   });
 }
