@@ -78,6 +78,129 @@
     </div>
   </div>
 
+  <!-- MODAL: ATUALIZAR PROTOCOLO -->
+<div class="modal-overlay" id="update-modal">
+  <div class="modal-card" style="max-width:560px; max-height:90vh; overflow-y:auto;">
+    <button class="modal-close" id="close-update-modal" type="button">&times;</button>
+    <div class="brand-header">
+      <div class="stamp">CT</div>
+      <div>
+        <h1>Atualizar Protocolo</h1>
+        <p id="upd-proto-id"></p>
+      </div>
+    </div>
+
+    <form id="update-form">
+      <input type="hidden" id="upd-id">
+
+      <div class="field">
+        <label for="upd-title">Título da Atividade</label>
+        <input type="text" id="upd-title" required>
+      </div>
+      <div class="field">
+        <label for="upd-category">Categoria</label>
+        <select id="upd-category">
+          <option>Auditoria</option>
+          <option>Compliance</option>
+          <option>Infraestrutura</option>
+          <option>Administrativo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="upd-priority">Prioridade</label>
+        <select id="upd-priority">
+          <option>Baixo</option>
+          <option>Médio</option>
+          <option>Alto</option>
+           <option>Urgente</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="upd-status">Status</label>
+        <select id="upd-status">
+          <option>Pendente</option>
+          <option>Aprovado</option>
+          <option>Recusado</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="upd-desc">Descrição</label>
+        <textarea id="upd-desc"></textarea>
+      </div>
+
+      <div class="upd-settings">
+        <h4>Configurações de atualização</h4>
+        <div class="field">
+          <label for="upd-reason">Justificativa da alteração</label>
+          <textarea id="upd-reason" placeholder="Explique o motivo da atualização..."></textarea>
+        </div>
+        <div class="field">
+          <label for="upd-review-date">Data de revisão (opcional)</label>
+          <input type="date" id="upd-review-date">
+        </div>
+        <label class="upd-check"><input type="checkbox" id="upd-log-history" checked> Registrar alteração no histórico</label>
+        <label class="upd-check"><input type="checkbox" id="upd-notify" checked> Notificar o responsável pelo protocolo</label>
+      </div>
+
+      <div class="upd-settings">
+        <h4>Histórico de alterações</h4>
+        <div id="upd-history"></div>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar Atualização</button>
+        <button type="button" class="btn-secondary" id="cancel-update">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-card" style="max-width:520px;">
+    <button class="modal-close" id="close-edit-modal" type="button">&times;</button>
+    <div class="brand-header">
+      <div class="stamp">CT</div>
+      <div><h1>Editar Protocolo</h1><p id="edit-sub"></p></div>
+    </div>
+    <form id="edit-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-grid">
+        <div class="field">
+          <label for="edit-status">Status</label>
+          <select id="edit-status">
+            <option>Em Aberto</option><option>Em Andamento</option>
+            <option>Aguardando Terceiros</option><option>Resolvido</option><option>Cancelado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="edit-priority">Prioridade</label>
+          <select id="edit-priority">
+            <option>Baixa</option>
+            <option>Média</option><option>Alta</option><option>Urgente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="edit-assignee">Atribuído a</label>
+          <input type="text" id="edit-assignee" placeholder="Operador, técnico ou setor">
+        </div>
+        <div class="field">
+          <label for="edit-category">Categoria</label>
+          <select id="edit-category">
+            <option>Auditoria</option><option>Compliance</option><option>Infraestrutura</option>
+            <option>Administrativo</option><option>Suporte de Rede</option><option>Manutenção de Hardware</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="edit-desc">Descrição / Observações</label>
+          <textarea id="edit-desc"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar</button>
+        <button type="button" class="btn-secondary" id="cancel-edit">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
   <!-- APLICAÇÃO PRINCIPAL -->
   <div id="app">
     <div class="shell">
@@ -263,7 +386,7 @@
               </div>
               <div>
                 <span>Volume Crítico (Urgente)</span>
-                <strong id="rep-urgent-count">0</strong>
+                <strong id="rep-urgente-count">0</strong>
               </div>
               <div>
                 <span>Tempo Médio Simulado</span>
@@ -281,332 +404,6 @@
   <div class="toast" id="toast">Operação realizada com sucesso.</div>
 
   <!-- SCRIPT -->
-  <script>
-    const State = {
-      user: { name: '', role: 'analista', email: '' },
-      users: [
-        { name: 'Ana Souza', email: 'ana@orgao.gov.br', pass: '123456', role: 'analista' },
-        { name: 'Carlos Lima', email: 'carlos@orgao.gov.br', pass: '123456', role: 'gestor' }
-      ],
-      protocols: [
-        { id: 'SIG-2026-001', title: 'Revisão de Contratos de TI', category: 'Infraestrutura', priority: 'Urgente', desc: 'Análise de conformidade e aditivos contratuais vigentes.', author: 'Ana Souza', date: '26/09/2026', status: 'Pendente' },
-        { id: 'SIG-2026-002', title: 'Auditoria de Processos de Compras', category: 'Auditoria', priority: 'Normal', desc: 'Verificação de licitações presenciais e eletrônicas.', author: 'Carlos Lima', date: '25/09/2026', status: 'Aprovado' },
-        { id: 'SIG-2026-003', title: 'Atualização de Normas de Compliance', category: 'Compliance', priority: 'Normal', desc: 'Adequação às diretrizes federais recentes.', author: 'Ana Souza', date: '24/09/2026', status: 'Recusado' }
-      ]
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDataFromStorage();
-      initModal();
-      initLogin();
-      initRegister();
-      initNavigation();
-      initForms();
-      initFilters();
-    });
-
-    function initModal() {
-      const modal = document.getElementById('register-modal');
-      const openBtn = document.getElementById('open-register-modal');
-      const closeBtn = document.getElementById('close-register-modal');
-
-      openBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        modal.classList.add('active');
-      });
-
-      closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-      });
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
-
-      const chips = document.querySelectorAll('#register-form .role-chip');
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          chips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-        });
-      });
-    }
-
-    function initLogin() {
-      document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value.trim().toLowerCase();
-        const pass = document.getElementById('login-pass').value.trim();
-
-        const foundUser = State.users.find(u => u.email === email && u.pass === pass);
-        if (!foundUser) {
-          showToast('E-mail não cadastrado ou senha incorreta.');
-          return;
-        }
-
-        State.user = { ...foundUser };
-        updateUserSession();
-        showToast(`Bem-vindo de volta, ${State.user.name}!`);
-      });
-
-      document.getElementById('logout-btn').addEventListener('click', () => {
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('login-form').reset();
-        showToast('Sessão encerrada.');
-      });
-    }
-
-    function initRegister() {
-      document.getElementById('register-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('reg-name').value.trim();
-        const email = document.getElementById('reg-email').value.trim().toLowerCase();
-        const pass = document.getElementById('reg-pass').value.trim();
-        const activeChip = document.querySelector('#register-form .role-chip.active');
-        const role = activeChip ? activeChip.dataset.role : 'analista';
-
-        if (State.users.some(u => u.email === email)) {
-          showToast('Este e-mail já está cadastrado no sistema.');
-          return;
-        }
-
-        const newUser = { name, email, pass, role };
-        State.users.push(newUser);
-        saveUsersToStorage();
-
-        // Fecha o modal de cadastro e limpa o form
-        document.getElementById('register-modal').classList.remove('active');
-        document.getElementById('register-form').reset();
-        
-        // Deixa o e-mail preenchido no login para agilizar a entrada
-        document.getElementById('login-email').value = email;
-
-        showToast('Conta criada com sucesso! Faça seu login.');
-      });
-    }
-
-    function updateUserSession() {
-      document.getElementById('sidebar-user-name').textContent = State.user.name;
-      document.getElementById('sidebar-role-label').textContent = `Perfil: ${State.user.role.toUpperCase()}`;
-
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-
-      renderApp();
-    }
-
-    function initNavigation() {
-      const navLinks = document.querySelectorAll('.navlink');
-      navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          navLinks.forEach(l => l.classList.remove('active'));
-          link.classList.add('active');
-
-          const targetId = link.dataset.target;
-          document.querySelectorAll('.view').forEach(view => {
-            view.classList.remove('active');
-          });
-          document.getElementById(targetId).classList.add('active');
-          renderApp();
-        });
-      });
-    }
-
-    function initForms() {
-      document.getElementById('new-protocol-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const title = document.getElementById('proto-title').value;
-        const category = document.getElementById('proto-category').value;
-        const priority = document.getElementById('proto-priority').value;
-        const desc = document.getElementById('proto-desc').value;
-
-        const newIdNum = State.protocols.length + 1;
-        const newProtocol = {
-          id: `SIG-2026-${String(newIdNum).padStart(3, '0')}`,
-          title,
-          category,
-          priority,
-          desc,
-          author: State.user.name,
-          date: new Date().toLocaleDateString('pt-BR'),
-          status: 'Pendente'
-        };
-
-        State.protocols.unshift(newProtocol);
-        saveDataToStorage();
-        document.getElementById('new-protocol-form').reset();
-        showToast(`Protocolo ${newProtocol.id} gerado com sucesso.`);
-        
-        document.querySelector('[data-target="view-protocolos"]').click();
-      });
-    }
-
-    function initFilters() {
-      document.getElementById('filter-search').addEventListener('input', renderProtocolsTable);
-      document.getElementById('filter-status').addEventListener('change', renderProtocolsTable);
-    }
-
-    function renderApp() {
-      renderStats();
-      renderRecentTable();
-      renderProtocolsTable();
-      renderReports();
-    }
-
-    function renderStats() {
-      const total = State.protocols.length;
-      const pendentes = State.protocols.filter(p => p.status === 'Pendente').length;
-      const aprovados = State.protocols.filter(p => p.status === 'Aprovado').length;
-      const recusados = State.protocols.filter(p => p.status === 'Recusado').length;
-
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-pendentes').textContent = pendentes;
-      document.getElementById('stat-aprovados').textContent = aprovados;
-      document.getElementById('stat-recusados').textContent = recusados;
-    }
-
-    function renderRecentTable() {
-      const tbody = document.querySelector('#recent-table tbody');
-      tbody.innerHTML = '';
-
-      const recent = State.protocols.slice(0, 5);
-      if (recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty">Nenhum registro encontrado.</td></tr>`;
-        return;
-      }
-
-      recent.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><span class="protocolo">${p.id}</span></td>
-          <td><strong>${escapeHTML(p.title)}</strong></td>
-          <td>${escapeHTML(p.author)}</td>
-          <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderProtocolsTable() {
-      const tbody = document.querySelector('#protocols-table tbody');
-      tbody.innerHTML = '';
-
-      const searchTerm = document.getElementById('filter-search').value.toLowerCase();
-      const statusTerm = document.getElementById('filter-status').value;
-
-      const filtered = State.protocols.filter(p => {
-        const matchSearch = p.title.toLowerCase().includes(searchTerm) || p.id.toLowerCase().includes(searchTerm);
-        const matchStatus = statusTerm === '' || p.status === statusTerm;
-        return matchSearch && matchStatus;
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhum protocolo corresponde aos filtros aplicados.</td></tr>`;
-        return;
-      }
-
-      filtered.forEach(p => {
-        const tr = document.createElement('tr');
-        
-        let actionsHTML = `<span style="font-size:12px;color:var(--ink-soft)">Somente Leitura</span>`;
-        
-        if (State.user.role === 'gestor') {
-          actionsHTML = `
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn-primary btn-sm" onclick="updateStatus('${p.id}', 'Aprovado')">Aprovar</button>
-              <button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="updateStatus('${p.id}', 'Recusado')">Recusar</button>
-              <button class="btn-secondary btn-sm" onclick="editProtocolModal('${p.id}')">Editar</button>
-            </div>
-          `;
-        }
-
-        tr.innerHTML = `
-          <td><span class="protocolo">${p.id}</span></td>
-          <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.category)} • ${p.priority}</small></td>
-          <td>${escapeHTML(p.author)}</td>
-          <td>${p.date}</td>
-          <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
-          <td>${actionsHTML}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function updateStatus(id, newStatus) {
-      if (State.user.role !== 'gestor') {
-        showToast('Acesso negado: Apenas gestores podem alterar status.');
-        return;
-      }
-
-      const proto = State.protocols.find(p => p.id === id);
-      if (proto) {
-        proto.status = newStatus;
-        saveDataToStorage();
-        renderApp();
-        showToast(`Protocolo ${id} alterado para: ${newStatus}.`);
-      }
-    }
-
-    function editProtocolModal(id) {
-      if (State.user.role !== 'gestor') return;
-      const proto = State.protocols.find(p => p.id === id);
-      if (!proto) return;
-
-      const novoTitulo = prompt("Editar Título da Atividade:", proto.title);
-      if (novoTitulo !== null && novoTitulo.trim() !== "") {
-        proto.title = novoTitulo.trim();
-        saveDataToStorage();
-        renderApp();
-        showToast(`Protocolo ${id} atualizado pelo Gestor.`);
-      }
-    }
-
-    function renderReports() {
-      const total = State.protocols.length;
-      const aprovados = State.protocols.filter(p => p.status === 'Aprovado').length;
-      const urgentes = State.protocols.filter(p => p.priority === 'Urgente').length;
-
-      const approvalRate = total > 0 ? Math.round((aprovados / total) * 100) : 0;
-      document.getElementById('rep-approval-rate').textContent = `${approvalRate}%`;
-      document.getElementById('rep-urgent-count').textContent = urgentes;
-    }
-
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-
-    function saveDataToStorage() {
-      localStorage.setItem('sigraf_protocols', JSON.stringify(State.protocols));
-    }
-
-    function saveUsersToStorage() {
-      localStorage.setItem('sigraf_users', JSON.stringify(State.users));
-    }
-
-    function loadDataFromStorage() {
-      const pData = localStorage.getItem('sigraf_protocols');
-      if (pData) {
-        try { State.protocols = JSON.parse(pData); } catch(e) {}
-      }
-      const uData = localStorage.getItem('sigraf_users');
-      if (uData) {
-        try { State.users = JSON.parse(uData); } catch(e) {}
-      }
-    }
-
-    function escapeHTML(str) {
-      return str.replace(/[&<>'"]/g, 
-        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-      );
-    }
-  </script>
+   <script src="app.js"></script>
 </body>
-</html>
+</html>SS
