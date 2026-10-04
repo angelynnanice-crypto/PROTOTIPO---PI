@@ -108,7 +108,7 @@ function initUpdateModal() {
       return;
     }
 
-    if (p.status !== novo.status && document.getElementById('upd-require-reason').checked && !reason) {
+   if (p.status !== novo.status && !reason) {
       showToast('Informe a justificativa para alterar o status.');
       document.getElementById('upd-reason').focus();
       return;
@@ -122,10 +122,9 @@ function initUpdateModal() {
     }
 
     saveDataToStorage();
-    renderApp();
-    close();
-
-    showToast(document.getElementById('upd-notify').checked
+renderApp();
+close();
+showToast(`Protocolo ${p.id} atualizado com sucesso.`);
       ? `Protocolo ${p.id} atualizado. ${p.author} foi notificado(a).`
       : `Protocolo ${p.id} atualizado com sucesso.`);
   });
@@ -207,14 +206,27 @@ function initNavigation() {
 function initForms() {
   document.getElementById('new-protocol-form').addEventListener('submit', (e) => {
     e.preventDefault();
+
+    const inicio = document.getElementById('proto-inicio').value;
+    const fim = document.getElementById('proto-fim').value;
+    if (fim <= inicio) {
+      showToast('A hora de fim precisa ser depois da hora de início.');
+      return;
+    }
+
     const newProtocol = {
       id: `SIG-2026-${String(State.protocols.length + 1).padStart(3, '0')}`,
       title: document.getElementById('proto-title').value,
-      category: document.getElementById('proto-category').value,
+      funcionario: document.getElementById('proto-funcionario').value.trim(),
+      setor: document.getElementById('proto-setor').value.trim(),
+      tipo: document.getElementById('proto-tipo').value,
+      data: document.getElementById('proto-data').value,
+      inicio,
+      fim,
       priority: document.getElementById('proto-priority').value,
       desc: document.getElementById('proto-desc').value,
       author: State.user.name,
-      date: new Date().toLocaleDateString('pt-BR'),
+      date: new Date().toLocaleString('pt-BR'),
       status: 'Pendente'
     };
 
@@ -271,16 +283,29 @@ function renderProtocolsTable() {
   const tbody = document.querySelector('#protocols-table tbody');
   tbody.innerHTML = '';
 
-  const searchTerm = document.getElementById('filter-search').value.toLowerCase();
-  const statusTerm = document.getElementById('filter-status').value;
+  // lê o campo; se ele não existir no HTML, devolve texto vazio (não quebra)
+  const val = id => (document.getElementById(id) || {}).value || '';
+
+  const searchTerm = val('filter-search').toLowerCase();
+  const statusTerm = val('filter-status');
+  const func = val('filter-func').toLowerCase();
+  const setor = val('filter-setor').toLowerCase();
+  const tipo = val('filter-tipo');
+  const de = val('filter-inicio');
+  const ate = val('filter-fim');
 
   const filtered = State.protocols.filter(p =>
     (p.title.toLowerCase().includes(searchTerm) || p.id.toLowerCase().includes(searchTerm)) &&
-    (statusTerm === '' || p.status === statusTerm)
+    (statusTerm === '' || p.status === statusTerm) &&
+    (func === '' || (p.funcionario || '').toLowerCase().includes(func)) &&
+    (setor === '' || (p.setor || '').toLowerCase().includes(setor)) &&
+    (tipo === '' || p.tipo === tipo) &&
+    (!de || (p.data && p.data >= de)) &&
+    (!ate || (p.data && p.data <= ate))
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhum protocolo corresponde aos filtros aplicados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">Nenhum protocolo corresponde aos filtros aplicados.</td></tr>`;
     return;
   }
 
@@ -300,16 +325,21 @@ function renderProtocolsTable() {
 
     tr.innerHTML = `
       <td><span class="protocolo">${p.id}</span></td>
-      <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.category)} • ${p.priority}</small></td>
-      <td>${escapeHTML(p.author)}</td>
-      <td>${p.date}</td>
+      <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || p.category || '—')} • ${escapeHTML(p.priority)}</small></td>
+      <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
+      <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
+      <td>${escapeHTML(p.author)}<br><small style="color:var(--ink-soft);">${p.date}</small></td>
       <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
       <td>${actionsHTML}</td>
     `;
     tbody.appendChild(tr);
   });
 }
-
+function formatarData(iso) {
+  if (!iso) return '—';
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
 function updateStatus(id, newStatus) {
   if (State.user.role !== 'gestor') {
     showToast('Acesso negado: Apenas gestores podem alterar status.');

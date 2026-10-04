@@ -369,8 +369,8 @@ textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-r
 .btn-row { display: flex; gap: 12px; margin-top: 16px; }
 .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--ink); padding: 11px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-.filters-row { display: flex; gap: 12px; margin-bottom: 16px; }
-.filters-row input, .filters-row select { max-width: 260px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.filters-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.filters-row input, .filters-row select { flex: 1 1 160px; max-width: 260px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
 
 .report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; }
 .report-summary div { background: #fbfbfc; padding: 16px; border-radius: 8px; border: 1px solid var(--border); }

@@ -109,10 +109,10 @@
       <div class="field">
         <label for="upd-priority">Prioridade</label>
         <select id="upd-priority">
-          <option>Baixo</option>
-          <option>Médio</option>
-          <option>Alto</option>
-           <option>Urgente</option>
+          <option>Baixa</option>
+<option>Normal</option>
+<option>Alta</option>
+<option>Urgente</option>
         </select>
       </div>
       <div class="field">
@@ -139,7 +139,7 @@
           <input type="date" id="upd-review-date">
         </div>
         <label class="upd-check"><input type="checkbox" id="upd-log-history" checked> Registrar alteração no histórico</label>
-        <label class="upd-check"><input type="checkbox" id="upd-notify" checked> Notificar o responsável pelo protocolo</label>
+     Protocolo ${p.id} atualizado com sucesso.
       </div>
 
       <div class="upd-settings">
@@ -275,12 +275,12 @@
             <div style="overflow-x:auto;">
               <table id="recent-table">
                 <thead>
-                  <tr>
-                    <th>Protocolo</th>
-                    <th>Título / Atividade</th>
-                    <th>Responsável</th>
-                    <th>Status</th>
-                  </tr>
+            <tr>
+  <th>Protocolo</th>
+  <th>Título / Atividade</th>
+  <th>Responsável</th>
+  <th>Status</th>
+</tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -309,14 +309,15 @@
             <div style="overflow-x:auto;">
               <table id="protocols-table">
                 <thead>
-                  <tr>
-                    <th>Protocolo</th>
-                    <th>Título / Atividade</th>
-                    <th>Responsável</th>
-                    <th>Data</th>
-                    <th>Status</th>
-                    <th>Ações de Gestão</th>
-                  </tr>
+                 <tr>
+  <th>Protocolo</th>
+  <th>Atividade</th>
+  <th>Funcionário / Setor</th>
+  <th>Data e horário</th>
+  <th>Registrado por</th>
+  <th>Status</th>
+  <th>Ações de Gestão</th>
+</tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -332,41 +333,68 @@
               <p class="sub">Preencha os campos para submeter um novo fluxo para análise.</p>
             </div>
           </div>
-          <div class="panel">
-            <form id="new-protocol-form">
-              <div class="form-grid">
-                <div class="field full">
-                  <label for="proto-title">Título da Atividade</label>
-                  <input type="text" id="proto-title" placeholder="Ex: Auditoria de Processos Orçamentários Q3" required>
-                </div>
-                <div class="field">
-                  <label for="proto-category">Categoria</label>
-                  <select id="proto-category">
-                    <option value="Auditoria">Auditoria</option>
-                    <option value="Compliance">Compliance</option>
-                    <option value="Infraestrutura">Infraestrutura</option>
-                    <option value="Administrativo">Administrativo</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="proto-priority">Prioridade</label>
-                  <select id="proto-priority">
-                    <option value="Normal">Normal</option>
-                    <option value="Urgente">Urgente</option>
-                  </select>
-                </div>
-                <div class="field full">
-                  <label for="proto-desc">Descrição Detalhada</label>
-                  <textarea id="proto-desc" placeholder="Descreva os objetivos, escopo e premissas da atividade..."></textarea>
-                </div>
-              </div>
-              <div class="btn-row">
-                <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Submeter Protocolo</button>
-                <button type="reset" class="btn-secondary">Limpar</button>
-              </div>
-            </form>
-          </div>
-        </div>
+         <div class="panel">
+  <form id="new-protocol-form">
+    <div class="form-grid">
+      <div class="field full">
+        <label for="proto-title">Título da Atividade</label>
+        <input type="text" id="proto-title" placeholder="Ex: Cobertura do turno da manhã" required>
+      </div>
+
+      <div class="field">
+        <label for="proto-funcionario">Funcionário</label>
+        <input type="text" id="proto-funcionario" required>
+      </div>
+      <div class="field">
+        <label for="proto-setor">Setor</label>
+        <input type="text" id="proto-setor" required>
+      </div>
+      <div class="field">
+        <label for="proto-tipo">Tipo de Atividade</label>
+        <select id="proto-tipo">
+          <option>Substituição temporária</option>
+          <option>Cobertura de horário</option>
+          <option>Apoio operacional</option>
+          <option>Atividade extraordinária</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="proto-data">Data</label>
+        <input type="date" id="proto-data" required>
+      </div>
+      <div class="field">
+        <label for="proto-inicio">Hora de início</label>
+        <input type="time" id="proto-inicio" required>
+      </div>
+      <div class="field">
+        <label for="proto-fim">Hora de fim</label>
+        <input type="time" id="proto-fim" required>
+      </div>
+
+      <div class="field">
+        <label for="proto-priority">Prioridade</label>
+        <select id="proto-priority">
+          <option>Baixa</option>
+          <option>Normal</option>
+          <option>Alta</option>
+          <option>Urgente</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="proto-desc">Descrição Detalhada</label>
+        <textarea id="proto-desc" placeholder="Descreva a atividade..."></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Submeter Protocolo</button>
+      <button type="reset" class="btn-secondary">Limpar</button>
+    </div>
+    </form>
+  </div>   <!-- fecha o panel -->
+</div>     <!-- fecha o view-novo (ESTE FALTAVA) -->
+
+<!-- RELATÓRIOS -->
+<div id="view-relatorios" class="view">
 
         <!-- RELATÓRIOS -->
         <div id="view-relatorios" class="view">
@@ -386,11 +414,7 @@
               </div>
               <div>
                 <span>Volume Crítico (Urgente)</span>
-                <strong id="rep-urgente-count">0</strong>
-              </div>
-              <div>
-                <span>Tempo Médio Simulado</span>
-                <strong id="rep-time">1.4 dias</strong>
+                <strong id="rep-urgent-count">0</strong>
               </div>
             </div>
           </div>
@@ -406,4 +430,4 @@
   <!-- SCRIPT -->
    <script src="app.js"></script>
 </body>
-</html>SS
+</html>
