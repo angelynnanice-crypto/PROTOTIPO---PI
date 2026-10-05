@@ -85,7 +85,7 @@ Cada protocolo tem: `id`, `title`, `category`, `priority`, `desc`, `author`, `da
 
 ## 4. Bugs conhecidos e por que acontecem
 
-### Bug 1: id do relatório diferente entre HTML e JS
+### Bug 1: id do relatório diferente entre HTML e JS AJEITADO
 
 O JS procura `rep-urgent-count`, mas o HTML tem `rep-urgente-count`. `getElementById` devolve `null`, e `null.textContent = ...` gera um `TypeError`.
 

@@ -4,22 +4,15 @@ const State = {
     { name: 'Ana Souza', email: 'ana@orgao.gov.br', pass: '123456', role: 'analista' },
     { name: 'Carlos Lima', email: 'carlos@orgao.gov.br', pass: '123456', role: 'gestor' }
   ],
-  protocols: [
-    { id: 'SIG-2026-001', title: 'Revisão de Contratos de TI', category: 'Infraestrutura', priority: 'Urgente', desc: 'Análise de conformidade e aditivos contratuais vigentes.', author: 'Ana Souza', date: '26/09/2026', status: 'Pendente' },
-    { id: 'SIG-2026-002', title: 'Auditoria de Processos de Compras', category: 'Auditoria', priority: 'Normal', desc: 'Verificação de licitações presenciais e eletrônicas.', author: 'Carlos Lima', date: '25/09/2026', status: 'Aprovado' },
-    { id: 'SIG-2026-003', title: 'Atualização de Normas de Compliance', category: 'Compliance', priority: 'Normal', desc: 'Adequação às diretrizes federais recentes.', author: 'Ana Souza', date: '24/09/2026', status: 'Recusado' }
-  ]
+  protocols: []
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   loadDataFromStorage();
-  initModal();
-  initUpdateModal();
-  initLogin();
-  initRegister();
-  initNavigation();
-  initForms();
-  initFilters();
+  [initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters]
+    .forEach(fn => {
+      try { fn(); } catch (e) { console.error('Erro em ' + fn.name + ':', e); }
+    });
 });
 
 /* ---------- Modal de cadastro ---------- */
@@ -46,14 +39,17 @@ function openUpdateModal(id) {
   if (!p) return;
 
   document.getElementById('upd-id').value = p.id;
-  document.getElementById('upd-proto-id').textContent = `${p.id} • criado por ${p.author} em ${p.date}`;
-  document.getElementById('upd-title').value = p.title;
-  document.getElementById('upd-category').value = p.category;
-  document.getElementById('upd-priority').value = p.priority;
-  document.getElementById('upd-status').value = p.status;
+  document.getElementById('upd-proto-id').textContent = `${p.id} • registrado por ${p.author} em ${p.date}`;
+  document.getElementById('upd-title').value = p.title || '';
+  document.getElementById('upd-funcionario').value = p.funcionario || '';
+  document.getElementById('upd-setor').value = p.setor || '';
+  document.getElementById('upd-tipo').value = p.tipo || 'Apoio operacional';
+  document.getElementById('upd-data').value = p.data || '';
+  document.getElementById('upd-inicio').value = p.inicio || '';
+  document.getElementById('upd-fim').value = p.fim || '';
+  document.getElementById('upd-priority').value = p.priority || 'Normal';
   document.getElementById('upd-desc').value = p.desc || '';
   document.getElementById('upd-reason').value = '';
-  document.getElementById('upd-review-date').value = p.reviewDate || '';
 
   const hist = p.history || [];
   document.getElementById('upd-history').innerHTML = hist.length
@@ -78,7 +74,7 @@ function initUpdateModal() {
   document.getElementById('update-form').addEventListener('submit', (e) => {
     e.preventDefault();
     if (State.user.role !== 'gestor') {
-      showToast('Acesso negado: Apenas gestores podem atualizar protocolos.');
+      showToast('Acesso negado: apenas gestores podem atualizar registros.');
       return;
     }
     const p = State.protocols.find(x => x.id === document.getElementById('upd-id').value);
@@ -86,14 +82,22 @@ function initUpdateModal() {
 
     const novo = {
       title: document.getElementById('upd-title').value.trim(),
-      category: document.getElementById('upd-category').value,
+      funcionario: document.getElementById('upd-funcionario').value.trim(),
+      setor: document.getElementById('upd-setor').value.trim(),
+      tipo: document.getElementById('upd-tipo').value,
+      data: document.getElementById('upd-data').value,
+      inicio: document.getElementById('upd-inicio').value,
+      fim: document.getElementById('upd-fim').value,
       priority: document.getElementById('upd-priority').value,
-      status: document.getElementById('upd-status').value,
-      desc: document.getElementById('upd-desc').value.trim(),
-      reviewDate: document.getElementById('upd-review-date').value
+      desc: document.getElementById('upd-desc').value.trim()
     };
     const reason = document.getElementById('upd-reason').value.trim();
-    const labels = { title: 'Título', category: 'Categoria', priority: 'Prioridade', status: 'Status', desc: 'Descrição', reviewDate: 'Data de revisão' };
+    const labels = { title: 'Título', funcionario: 'Funcionário', setor: 'Setor', tipo: 'Tipo', data: 'Data', inicio: 'Início', fim: 'Fim', priority: 'Prioridade', desc: 'Descrição' };
+
+    if (novo.inicio && novo.fim && novo.fim <= novo.inicio) {
+      showToast('A hora de fim precisa ser depois da hora de início.');
+      return;
+    }
 
     const changes = [];
     Object.keys(labels).forEach(k => {
@@ -108,28 +112,16 @@ function initUpdateModal() {
       return;
     }
 
-   if (p.status !== novo.status && !reason) {
-      showToast('Informe a justificativa para alterar o status.');
-      document.getElementById('upd-reason').focus();
-      return;
-    }
-
     Object.assign(p, novo);
-
-    if (document.getElementById('upd-log-history').checked) {
-      p.history = p.history || [];
-      p.history.push({ user: State.user.name, date: new Date().toLocaleString('pt-BR'), changes, reason });
-    }
+    p.history = p.history || [];
+    p.history.push({ user: State.user.name, date: new Date().toLocaleString('pt-BR'), changes, reason });
 
     saveDataToStorage();
-renderApp();
-close();
-showToast(`Protocolo ${p.id} atualizado com sucesso.`);
-      ? `Protocolo ${p.id} atualizado. ${p.author} foi notificado(a).`
-      : `Protocolo ${p.id} atualizado com sucesso.`);
+    renderApp();
+    close();
+    showToast(`Registro ${p.id} atualizado com sucesso.`);
   });
 }
-
 /* ---------- Login / Cadastro ---------- */
 function initLogin() {
   document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -215,7 +207,7 @@ function initForms() {
     }
 
     const newProtocol = {
-      id: `SIG-2026-${String(State.protocols.length + 1).padStart(3, '0')}`,
+      id: gerarId(),
       title: document.getElementById('proto-title').value,
       funcionario: document.getElementById('proto-funcionario').value.trim(),
       setor: document.getElementById('proto-setor').value.trim(),
@@ -226,8 +218,8 @@ function initForms() {
       priority: document.getElementById('proto-priority').value,
       desc: document.getElementById('proto-desc').value,
       author: State.user.name,
-      date: new Date().toLocaleString('pt-BR'),
-      status: 'Pendente'
+      date: new Date().toLocaleString('pt-BR')
+    
     };
 
     State.protocols.unshift(newProtocol);
@@ -237,12 +229,28 @@ function initForms() {
     document.querySelector('[data-target="view-protocolos"]').click();
   });
 }
-
-function initFilters() {
-  document.getElementById('filter-search').addEventListener('input', renderProtocolsTable);
-  document.getElementById('filter-status').addEventListener('change', renderProtocolsTable);
+function gerarId() {
+  const nums = State.protocols.map(p => parseInt(p.id.split('-').pop(), 10) || 0);
+  const prox = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `SIG-2026-${String(prox).padStart(3, '0')}`;
 }
 
+function initFilters() {
+  ['filter-search', 'filter-func', 'filter-setor'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', renderProtocolsTable);
+  });
+  ['filter-tipo', 'filter-inicio', 'filter-fim'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderProtocolsTable);
+  });
+  ['rep-inicio', 'rep-fim'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderReports);
+  });
+  const exp = document.getElementById('rep-export');
+  if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
+}
 /* ---------- Renderização ---------- */
 function renderApp() {
   renderStats();
@@ -272,7 +280,7 @@ function renderRecentTable() {
     tr.innerHTML = `
       <td><span class="protocolo">${p.id}</span></td>
       <td><strong>${escapeHTML(p.title)}</strong></td>
-      <td>${escapeHTML(p.author)}</td>
+      <td>${escapeHTML(p.funcionario || p.author)}</td>
       <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
     `;
     tbody.appendChild(tr);
@@ -305,7 +313,7 @@ function renderProtocolsTable() {
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">Nenhum protocolo corresponde aos filtros aplicados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">Nenhum registro corresponde aos filtros aplicados.</td></tr>`;
     return;
   }
 
@@ -319,12 +327,16 @@ function renderProtocolsTable() {
           <button class="btn-primary btn-sm" onclick="updateStatus('${p.id}', 'Aprovado')">Aprovar</button>
           <button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="updateStatus('${p.id}', 'Recusado')">Recusar</button>
           <button class="btn-secondary btn-sm" onclick="openUpdateModal('${p.id}')">Atualizar</button>
+          <button class="btn-secondary btn-sm" onclick="openUpdateModal('${p.id}')">Atualizar</button>
+<button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="deleteProtocol('${p.id}')">Apagar</button>
         </div>
       `;
+     
     }
+     
 
     tr.innerHTML = `
-      <td><span class="protocolo">${p.id}</span></td>
+      <td><span class="registro">${p.id}</span></td>
       <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || p.category || '—')} • ${escapeHTML(p.priority)}</small></td>
       <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
       <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
@@ -340,26 +352,101 @@ function formatarData(iso) {
   const [a, m, d] = iso.split('-');
   return `${d}/${m}/${a}`;
 }
-function updateStatus(id, newStatus) {
-  if (State.user.role !== 'gestor') {
-    showToast('Acesso negado: Apenas gestores podem alterar status.');
+function renderStats() {
+  const unicos = campo => new Set(State.protocols.map(p => p[campo]).filter(Boolean)).size;
+  document.getElementById('stat-total').textContent = State.protocols.length;
+  document.getElementById('stat-func').textContent = unicos('funcionario');
+  document.getElementById('stat-setores').textContent = unicos('setor');
+  document.getElementById('stat-urgentes').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
+}
+function renderRecentTable() {
+  const tbody = document.querySelector('#recent-table tbody');
+  tbody.innerHTML = '';
+  const recent = State.protocols.slice(0, 5);
+  if (recent.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="empty">Nenhum registro encontrado.</td></tr>`;
     return;
   }
-  const proto = State.protocols.find(p => p.id === id);
-  if (proto) {
-    proto.status = newStatus;
-    saveDataToStorage();
-    renderApp();
-    showToast(`Protocolo ${id} alterado para: ${newStatus}.`);
+  recent.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="protocolo">${p.id}</span></td>
+      <td><strong>${escapeHTML(p.title)}</strong></td>
+      <td>${escapeHTML(p.funcionario || p.author)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function renderProtocolsTable() {
+  const tbody = document.querySelector('#protocols-table tbody');
+  tbody.innerHTML = '';
+
+  const val = id => (document.getElementById(id) || {}).value || '';
+  const searchTerm = val('filter-search').toLowerCase();
+  const func = val('filter-func').toLowerCase();
+  const setor = val('filter-setor').toLowerCase();
+  const tipo = val('filter-tipo');
+  const de = val('filter-inicio');
+  const ate = val('filter-fim');
+
+  const filtered = State.protocols.filter(p =>
+    (p.title.toLowerCase().includes(searchTerm) || p.id.toLowerCase().includes(searchTerm)) &&
+    (func === '' || (p.funcionario || '').toLowerCase().includes(func)) &&
+    (setor === '' || (p.setor || '').toLowerCase().includes(setor)) &&
+    (tipo === '' || p.tipo === tipo) &&
+    (!de || (p.data && p.data >= de)) &&
+    (!ate || (p.data && p.data <= ate))
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhum registro corresponde aos filtros aplicados.</td></tr>`;
+    return;
   }
+
+  filtered.forEach(p => {
+    const tr = document.createElement('tr');
+    let actionsHTML = `<span style="font-size:12px;color:var(--ink-soft)">Somente Leitura</span>`;
+
+    if (State.user.role === 'gestor') {
+      actionsHTML = `
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-secondary btn-sm" onclick="openUpdateModal('${p.id}')">Atualizar</button>
+          <button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="deleteProtocol('${p.id}')">Apagar</button>
+        </div>
+      `;
+    }
+
+    tr.innerHTML = `
+      <td><span class="protocolo">${p.id}</span></td>
+      <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || '—')} • ${escapeHTML(p.priority || '—')}</small></td>
+      <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
+      <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
+      <td>${escapeHTML(p.author)}<br><small style="color:var(--ink-soft);">${p.date}</small></td>
+      <td>${actionsHTML}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function deleteProtocol(id) {
+  if (State.user.role !== 'gestor') {
+    showToast('Acesso negado: Apenas gestores podem apagar protocolos.');
+    return;
+  }
+  if (!confirm(`Apagar o protocolo ${id}? Essa ação não pode ser desfeita.`)) return;
+  State.protocols = State.protocols.filter(p => p.id !== id);
+  saveDataToStorage();
+  renderApp();
+  showToast(`Protocolo ${id} apagado.`);
 }
 
 function renderReports() {
-  const total = State.protocols.length;
-  const aprovados = State.protocols.filter(p => p.status === 'Aprovado').length;
-  const urgentes = State.protocols.filter(p => p.priority === 'Urgente').length;
-  document.getElementById('rep-approval-rate').textContent = `${total > 0 ? Math.round((aprovados / total) * 100) : 0}%`;
-  document.getElementById('rep-urgent-count').textContent = urgentes;
+  document.getElementById('rep-total').textContent = State.protocols.length;
+  document.getElementById('rep-urgent-count').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
+  const tb = document.querySelector('#rep-table tbody');
+  const dados = getRelatorio();
+  tb.innerHTML = dados.length
+    ? dados.map(r => `<tr><td>${escapeHTML(r.funcionario)}</td><td>${escapeHTML(r.setor)}</td><td>${r.qtd}</td><td>${r.horas}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="empty">Nenhuma atividade no período.</td></tr>';
 }
 
 /* ---------- Utilitários ---------- */
@@ -371,7 +458,7 @@ function showToast(message) {
 }
 
 function saveDataToStorage() {
-  localStorage.setItem('sigraf_protocols', JSON.stringify(State.protocols));
+ 
 }
 
 function saveUsersToStorage() {
@@ -389,4 +476,35 @@ function escapeHTML(str) {
   return String(str).replace(/[&<>'"]/g,
     tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
   );
+}
+function minutos(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function getRelatorio() {
+  const de = document.getElementById('rep-inicio').value;
+  const ate = document.getElementById('rep-fim').value;
+  const mapa = {};
+  State.protocols.forEach(p => {
+    if (!p.funcionario || !p.data) return;
+    if (de && p.data < de) return;
+    if (ate && p.data > ate) return;
+    const chave = p.funcionario + '|' + p.setor;
+    if (!mapa[chave]) mapa[chave] = { funcionario: p.funcionario, setor: p.setor || '—', qtd: 0, min: 0 };
+    mapa[chave].qtd++;
+    mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
+  });
+  return Object.values(mapa).map(r => ({ ...r, horas: (r.min / 60).toFixed(1) }));
+}
+
+function exportarCSV(lista) {
+  const linhas = [['Funcionário', 'Setor', 'Atividades', 'Horas']];
+  lista.forEach(r => linhas.push([r.funcionario, r.setor, r.qtd, String(r.horas).replace('.', ',')]));
+  const csv = linhas.map(l => l.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'relatorio.csv';
+  a.click();
 }

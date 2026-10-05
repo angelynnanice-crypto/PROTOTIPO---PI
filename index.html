@@ -70,7 +70,6 @@
           <label>Perfil Desejado</label>
           <div class="role-select">
             <div class="role-chip active" data-role="analista">Analista</div>
-            <div class="role-chip" data-role="gestor">Gestor</div>
           </div>
         </div>
         <button type="submit" class="btn-primary">Finalizar Cadastro</button>
@@ -79,128 +78,66 @@
   </div>
 
   <!-- MODAL: ATUALIZAR PROTOCOLO -->
-<div class="modal-overlay" id="update-modal">
-  <div class="modal-card" style="max-width:560px; max-height:90vh; overflow-y:auto;">
-    <button class="modal-close" id="close-update-modal" type="button">&times;</button>
-    <div class="brand-header">
-      <div class="stamp">CT</div>
-      <div>
-        <h1>Atualizar Protocolo</h1>
-        <p id="upd-proto-id"></p>
-      </div>
-    </div>
-
-    <form id="update-form">
-      <input type="hidden" id="upd-id">
-
-      <div class="field">
-        <label for="upd-title">Título da Atividade</label>
-        <input type="text" id="upd-title" required>
-      </div>
-      <div class="field">
-        <label for="upd-category">Categoria</label>
-        <select id="upd-category">
-          <option>Auditoria</option>
-          <option>Compliance</option>
-          <option>Infraestrutura</option>
-          <option>Administrativo</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="upd-priority">Prioridade</label>
-        <select id="upd-priority">
-          <option>Baixa</option>
-<option>Normal</option>
-<option>Alta</option>
-<option>Urgente</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="upd-status">Status</label>
-        <select id="upd-status">
-          <option>Pendente</option>
-          <option>Aprovado</option>
-          <option>Recusado</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="upd-desc">Descrição</label>
-        <textarea id="upd-desc"></textarea>
-      </div>
-
-      <div class="upd-settings">
-        <h4>Configurações de atualização</h4>
-        <div class="field">
-          <label for="upd-reason">Justificativa da alteração</label>
-          <textarea id="upd-reason" placeholder="Explique o motivo da atualização..."></textarea>
+  <div class="modal-overlay" id="update-modal">
+    <div class="modal-card" style="max-width:560px; max-height:90vh; overflow-y:auto;">
+      <button class="modal-close" id="close-update-modal" type="button">&times;</button>
+      <div class="brand-header">
+        <div class="stamp">CT</div>
+        <div>
+          <h1>Atualizar Protocolo</h1>
+          <p id="upd-proto-id"></p>
         </div>
-        <div class="field">
-          <label for="upd-review-date">Data de revisão (opcional)</label>
-          <input type="date" id="upd-review-date">
-        </div>
-        <label class="upd-check"><input type="checkbox" id="upd-log-history" checked> Registrar alteração no histórico</label>
-     Protocolo ${p.id} atualizado com sucesso.
       </div>
+
+      <form id="update-form">
+        <input type="hidden" id="upd-id">
+
+        <div class="form-grid">
+          <div class="field full"><label for="upd-title">Título da Atividade</label><input type="text" id="upd-title" required></div>
+          <div class="field"><label for="upd-funcionario">Funcionário</label><input type="text" id="upd-funcionario"></div>
+          <div class="field"><label for="upd-setor">Setor</label><input type="text" id="upd-setor"></div>
+          <div class="field">
+            <label for="upd-tipo">Tipo de Atividade</label>
+            <select id="upd-tipo">
+              <option>Substituição temporária</option>
+              <option>Cobertura de horário</option>
+              <option>Apoio operacional</option>
+              <option>Atividade extraordinária</option>
+            </select>
+          </div>
+          <div class="field"><label for="upd-data">Data</label><input type="date" id="upd-data"></div>
+          <div class="field"><label for="upd-inicio">Hora de início</label><input type="time" id="upd-inicio" required></div>
+          <div class="field"><label for="upd-fim">Hora de fim</label><input type="time" id="upd-fim" required></div>
+          <div class="field">
+            <label for="upd-priority">Prioridade</label>
+            <select id="upd-priority">
+              <option>Baixa</option><option>Normal</option><option>Alta</option><option>Urgente</option>
+            </select>
+          </div>
+          <div class="field full"><label for="upd-desc">Descrição</label><textarea id="upd-desc"></textarea></div>
+        </div>
+
+        <div class="upd-settings">
+          <h4>Justificativa</h4>
+          <div class="field">
+            <label for="upd-reason">Motivo da alteração (opcional)</label>
+            <textarea id="upd-reason" placeholder="Explique o motivo da atualização..."></textarea>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar alteração</button>
+          <button type="button" class="btn-secondary" id="cancel-update">Cancelar</button>
+        </div>
+      </form>
 
       <div class="upd-settings">
         <h4>Histórico de alterações</h4>
         <div id="upd-history"></div>
       </div>
-
-      <div class="btn-row">
-        <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar Atualização</button>
-        <button type="button" class="btn-secondary" id="cancel-update">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
-<div class="modal-overlay" id="edit-modal">
-  <div class="modal-card" style="max-width:520px;">
-    <button class="modal-close" id="close-edit-modal" type="button">&times;</button>
-    <div class="brand-header">
-      <div class="stamp">CT</div>
-      <div><h1>Editar Protocolo</h1><p id="edit-sub"></p></div>
     </div>
-    <form id="edit-form">
-      <input type="hidden" id="edit-id">
-      <div class="form-grid">
-        <div class="field">
-          <label for="edit-status">Status</label>
-          <select id="edit-status">
-            <option>Em Aberto</option><option>Em Andamento</option>
-            <option>Aguardando Terceiros</option><option>Resolvido</option><option>Cancelado</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="edit-priority">Prioridade</label>
-          <select id="edit-priority">
-            <option>Baixa</option>
-            <option>Média</option><option>Alta</option><option>Urgente</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="edit-assignee">Atribuído a</label>
-          <input type="text" id="edit-assignee" placeholder="Operador, técnico ou setor">
-        </div>
-        <div class="field">
-          <label for="edit-category">Categoria</label>
-          <select id="edit-category">
-            <option>Auditoria</option><option>Compliance</option><option>Infraestrutura</option>
-            <option>Administrativo</option><option>Suporte de Rede</option><option>Manutenção de Hardware</option>
-          </select>
-        </div>
-        <div class="field full">
-          <label for="edit-desc">Descrição / Observações</label>
-          <textarea id="edit-desc"></textarea>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar</button>
-        <button type="button" class="btn-secondary" id="cancel-edit">Cancelar</button>
-      </div>
-    </form>
   </div>
-</div>
+
   <!-- APLICAÇÃO PRINCIPAL -->
   <div id="app">
     <div class="shell">
@@ -227,7 +164,7 @@
             Novo Registro
           </button>
           <button class="navlink" data-target="view-relatorios">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             Relatórios
           </button>
         </nav>
@@ -242,7 +179,7 @@
 
       <!-- CONTEÚDO PRINCIPAL -->
       <main class="main">
-        
+
         <!-- VISÃO GERAL -->
         <div id="view-dashboard" class="view active">
           <div class="topbar">
@@ -252,35 +189,22 @@
             </div>
           </div>
           <div class="stats-row">
-            <div class="stat-card">
-              <div class="num" id="stat-total">0</div>
-              <div class="label">Total de Registros</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="stat-pendentes">0</div>
-              <div class="label">Pendentes de Análise</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="stat-aprovados">0</div>
-              <div class="label">Aprovados</div>
-            </div>
-            <div class="stat-card">
-              <div class="num" id="stat-recusados">0</div>
-              <div class="label">Recusados</div>
-            </div>
+            <div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">Total de Registros</div></div>
+            <div class="stat-card"><div class="num" id="stat-func">0</div><div class="label">Funcionários</div></div>
+            <div class="stat-card"><div class="num" id="stat-setores">0</div><div class="label">Setores</div></div>
+            <div class="stat-card"><div class="num" id="stat-urgentes">0</div><div class="label">Urgentes</div></div>
           </div>
           <div class="panel">
             <h3>Atividades Recentes</h3>
-            <p class="panel-sub">Últimos protocolos submetidos no sistema.</p>
+            <p class="panel-sub">Últimos registros submetidos no sistema.</p>
             <div style="overflow-x:auto;">
               <table id="recent-table">
                 <thead>
-            <tr>
-  <th>Protocolo</th>
-  <th>Título / Atividade</th>
-  <th>Responsável</th>
-  <th>Status</th>
-</tr>
+                  <tr>
+                    <th>Protocolo</th>
+                    <th>Título / Atividade</th>
+                    <th>Responsável</th>
+                  </tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -288,36 +212,40 @@
           </div>
         </div>
 
-        <!-- PROTOCOLOS -->
+        <!-- REGISTROS -->
         <div id="view-protocolos" class="view">
           <div class="topbar">
             <div>
-              <h2>Gestão de Protocolos</h2>
+              <h2>Gestão de Registros</h2>
               <p class="sub">Consulte, filtre e gerencie o ciclo de vida dos processos.</p>
             </div>
           </div>
           <div class="panel">
             <div class="filters-row">
               <input type="text" id="filter-search" placeholder="Buscar por título ou ID...">
-              <select id="filter-status">
-                <option value="">Todos os status</option>
-                <option value="Pendente">Pendente</option>
-                <option value="Aprovado">Aprovado</option>
-                <option value="Recusado">Recusado</option>
+              <input type="text" id="filter-func" placeholder="Funcionário">
+              <input type="text" id="filter-setor" placeholder="Setor">
+              <select id="filter-tipo">
+                <option value="">Todos os tipos</option>
+                <option>Substituição temporária</option>
+                <option>Cobertura de horário</option>
+                <option>Apoio operacional</option>
+                <option>Atividade extraordinária</option>
               </select>
+              <input type="date" id="filter-inicio" title="De">
+              <input type="date" id="filter-fim" title="Até">
             </div>
             <div style="overflow-x:auto;">
               <table id="protocols-table">
                 <thead>
-                 <tr>
-  <th>Protocolo</th>
-  <th>Atividade</th>
-  <th>Funcionário / Setor</th>
-  <th>Data e horário</th>
-  <th>Registrado por</th>
-  <th>Status</th>
-  <th>Ações de Gestão</th>
-</tr>
+                  <tr>
+                    <th>Protocolo</th>
+                    <th>Atividade</th>
+                    <th>Funcionário / Setor</th>
+                    <th>Data e horário</th>
+                    <th>Registrado por</th>
+                    <th>Ações de Gestão</th>
+                  </tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -333,89 +261,96 @@
               <p class="sub">Preencha os campos para submeter um novo fluxo para análise.</p>
             </div>
           </div>
-         <div class="panel">
-  <form id="new-protocol-form">
-    <div class="form-grid">
-      <div class="field full">
-        <label for="proto-title">Título da Atividade</label>
-        <input type="text" id="proto-title" placeholder="Ex: Cobertura do turno da manhã" required>
-      </div>
+          <div class="panel">
+            <form id="new-protocol-form">
+              <div class="form-grid">
+                <div class="field full">
+                  <label for="proto-title">Título da Atividade</label>
+                  <input type="text" id="proto-title" placeholder="Ex: Cobertura do turno da manhã" required>
+                </div>
 
-      <div class="field">
-        <label for="proto-funcionario">Funcionário</label>
-        <input type="text" id="proto-funcionario" required>
-      </div>
-      <div class="field">
-        <label for="proto-setor">Setor</label>
-        <input type="text" id="proto-setor" required>
-      </div>
-      <div class="field">
-        <label for="proto-tipo">Tipo de Atividade</label>
-        <select id="proto-tipo">
-          <option>Substituição temporária</option>
-          <option>Cobertura de horário</option>
-          <option>Apoio operacional</option>
-          <option>Atividade extraordinária</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="proto-data">Data</label>
-        <input type="date" id="proto-data" required>
-      </div>
-      <div class="field">
-        <label for="proto-inicio">Hora de início</label>
-        <input type="time" id="proto-inicio" required>
-      </div>
-      <div class="field">
-        <label for="proto-fim">Hora de fim</label>
-        <input type="time" id="proto-fim" required>
-      </div>
+                <div class="field">
+                  <label for="proto-funcionario">Funcionário</label>
+                  <input type="text" id="proto-funcionario" required>
+                </div>
+                <div class="field">
+                  <label for="proto-setor">Setor</label>
+                  <input type="text" id="proto-setor" required>
+                </div>
+                <div class="field">
+                  <label for="proto-tipo">Tipo de Atividade</label>
+                  <select id="proto-tipo">
+                    <option>Substituição temporária</option>
+                    <option>Cobertura de horário</option>
+                    <option>Apoio operacional</option>
+                    <option>Atividade extraordinária</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="proto-data">Data</label>
+                  <input type="date" id="proto-data" required>
+                </div>
+                <div class="field">
+                  <label for="proto-inicio">Hora de início</label>
+                  <input type="time" id="proto-inicio" required>
+                </div>
+                <div class="field">
+                  <label for="proto-fim">Hora de fim</label>
+                  <input type="time" id="proto-fim" required>
+                </div>
 
-      <div class="field">
-        <label for="proto-priority">Prioridade</label>
-        <select id="proto-priority">
-          <option>Baixa</option>
-          <option>Normal</option>
-          <option>Alta</option>
-          <option>Urgente</option>
-        </select>
-      </div>
-      <div class="field full">
-        <label for="proto-desc">Descrição Detalhada</label>
-        <textarea id="proto-desc" placeholder="Descreva a atividade..."></textarea>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Submeter Protocolo</button>
-      <button type="reset" class="btn-secondary">Limpar</button>
-    </div>
-    </form>
-  </div>   <!-- fecha o panel -->
-</div>     <!-- fecha o view-novo (ESTE FALTAVA) -->
-
-<!-- RELATÓRIOS -->
-<div id="view-relatorios" class="view">
+                <div class="field">
+                  <label for="proto-priority">Prioridade</label>
+                  <select id="proto-priority">
+                    <option>Baixa</option>
+                    <option>Normal</option>
+                    <option>Alta</option>
+                    <option>Urgente</option>
+                  </select>
+                </div>
+                <div class="field full">
+                  <label for="proto-desc">Descrição Detalhada</label>
+                  <textarea id="proto-desc" placeholder="Descreva a atividade..."></textarea>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Submeter Protocolo</button>
+                <button type="reset" class="btn-secondary">Limpar</button>
+              </div>
+            </form>
+          </div>
+        </div>
 
         <!-- RELATÓRIOS -->
         <div id="view-relatorios" class="view">
           <div class="topbar">
             <div>
               <h2>Relatórios Gerenciais</h2>
-              <p class="sub">Consolidação estatística dos fluxos registrados.</p>
+              <p class="sub">Consolidação das atividades registradas.</p>
             </div>
           </div>
+
           <div class="panel">
-            <h3>Sumário Executivo</h3>
-            <p class="panel-sub">Visão consolidada de desempenho e status operacional atual.</p>
+            <h3>Sumário</h3>
             <div class="report-summary">
-              <div>
-                <span>Taxa de Aprovação</span>
-                <strong id="rep-approval-rate">0%</strong>
-              </div>
-              <div>
-                <span>Volume Crítico (Urgente)</span>
-                <strong id="rep-urgent-count">0</strong>
-              </div>
+              <div><span>Total de registros</span><strong id="rep-total">0</strong></div>
+              <div><span>Volume Crítico (Urgente)</span><strong id="rep-urgent-count">0</strong></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Atividades por funcionário e setor</h3>
+            <p class="panel-sub">Filtre por período e exporte em CSV.</p>
+            <div class="filters-row">
+              <input type="date" id="rep-inicio" title="De">
+              <input type="date" id="rep-fim" title="Até">
+              <button type="button" class="btn-primary btn-sm" id="rep-export">Exportar CSV</button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table id="rep-table">
+                <thead><tr><th>Funcionário</th><th>Setor</th><th>Atividades</th><th>Horas</th></tr></thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -428,6 +363,6 @@
   <div class="toast" id="toast">Operação realizada com sucesso.</div>
 
   <!-- SCRIPT -->
-   <script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
