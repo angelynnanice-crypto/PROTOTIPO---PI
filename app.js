@@ -1,19 +1,90 @@
+/* =========================================================
+   CENTRALIZAR — app.js (versão Supabase)
+   ========================================================= */
+
+const SUPABASE_URL = 'https://esrmrlycbkeiydfjosun.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzcm1ybHljYmtlaXlkZmpvc3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMTc4MjcsImV4cCI6MjEwNjc5MzgyN30.sJwwjSMI4jyT4rgfj0yIGUkL_qf03qQQEFm5lmoYSqc';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const State = {
-  user: { name: '', role: 'analista', email: '' },
-  users: [
-    { name: 'Ana Souza', email: 'ana@orgao.gov.br', pass: '123456', role: 'analista' },
-    { name: 'Carlos Lima', email: 'carlos@orgao.gov.br', pass: '123456', role: 'gestor' }
-  ],
+  user: { id: '', name: '', role: 'analista', email: '' },
+  users: [],
   protocols: []
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadDataFromStorage();
-  [initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters]
+document.addEventListener('DOMContentLoaded', async () => {
+  [initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters, initUsers]
     .forEach(fn => {
       try { fn(); } catch (e) { console.error('Erro em ' + fn.name + ':', e); }
     });
+  const { data } = await sb.auth.getSession();
+  if (data.session) await entrar(data.session.user);
 });
+
+/* ---------- Dados (Supabase) ---------- */
+function codigoProtocolo(numero, criadoEm) {
+  return `SIG-${new Date(criadoEm).getFullYear()}-${String(numero).padStart(3, '0')}`;
+}
+
+async function entrar(authUser) {
+  const { data: perfil, error } = await sb.from('perfis').select('*').eq('id', authUser.id).single();
+  if (error || !perfil || !perfil.ativo) {
+    await sb.auth.signOut();
+    showToast('Acesso indisponível para este usuário.');
+    return false;
+  }
+  State.user = {
+    id: perfil.id,
+    name: perfil.nome,
+    email: perfil.email,
+    role: perfil.papel,
+    createdAt: new Date(perfil.criado_em).toLocaleDateString('pt-BR')
+  };
+  await carregarDados();
+  updateUserSession();
+  return true;
+}
+
+async function carregarDados() {
+  const { data: prots, error } = await sb.from('registros').select('*').order('numero', { ascending: false });
+  if (error) { console.error(error); showToast('Erro ao carregar os registros.'); return; }
+
+  const hist = {};
+  State.users = [];
+  if (State.user.role === 'gestor') {
+    const { data: hs } = await sb.from('historico_alteracoes').select('*').order('criado_em');
+    (hs || []).forEach(h => {
+      (hist[h.registro_numero] = hist[h.registro_numero] || []).push({
+        user: h.usuario_nome || '—',
+        date: new Date(h.criado_em).toLocaleString('pt-BR'),
+        changes: h.alteracoes || [],
+        reason: h.motivo || ''
+      });
+    });
+    const { data: us } = await sb.from('perfis').select('*').order('nome');
+    State.users = (us || []).map(u => ({
+      id: u.id, name: u.nome, email: u.email, role: u.papel, ativo: u.ativo,
+      createdAt: new Date(u.criado_em).toLocaleDateString('pt-BR')
+    }));
+  }
+
+  State.protocols = (prots || []).map(r => ({
+    numero: r.numero,
+    id: codigoProtocolo(r.numero, r.criado_em),
+    title: r.titulo,
+    funcionario: r.funcionario,
+    setor: r.setor,
+    tipo: r.tipo,
+    data: r.data,
+    inicio: (r.hora_inicio || '').slice(0, 5),
+    fim: (r.hora_fim || '').slice(0, 5),
+    priority: r.prioridade,
+    desc: r.descricao || '',
+    author: r.autor_nome || '—',
+    date: new Date(r.criado_em).toLocaleString('pt-BR'),
+    history: hist[r.numero] || []
+  }));
+}
 
 /* ---------- Modal de cadastro ---------- */
 function initModal() {
@@ -24,12 +95,6 @@ function initModal() {
   });
   document.getElementById('close-register-modal').addEventListener('click', () => modal.classList.remove('active'));
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
-
-  const chips = document.querySelectorAll('#register-form .role-chip');
-  chips.forEach(chip => chip.addEventListener('click', () => {
-    chips.forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-  }));
 }
 
 /* ---------- Modal de atualização de protocolo ---------- */
@@ -71,12 +136,9 @@ function initUpdateModal() {
   document.getElementById('cancel-update').addEventListener('click', close);
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
 
-  document.getElementById('update-form').addEventListener('submit', (e) => {
+  document.getElementById('update-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (State.user.role !== 'gestor') {
-      showToast('Acesso negado: apenas gestores podem atualizar registros.');
-      return;
-    }
+    if (State.user.role !== 'gestor') { showToast('Acesso negado: apenas gestores podem atualizar registros.'); return; }
     const p = State.protocols.find(x => x.id === document.getElementById('upd-id').value);
     if (!p) return;
 
@@ -106,40 +168,47 @@ function initUpdateModal() {
         changes.push(k === 'desc' ? 'Descrição alterada' : `${labels[k]}: "${antigo || '—'}" → "${novo[k] || '—'}"`);
       }
     });
+    if (changes.length === 0) { showToast('Nenhuma alteração foi feita.'); return; }
 
-    if (changes.length === 0) {
-      showToast('Nenhuma alteração foi feita.');
-      return;
-    }
+    const { error } = await sb.from('registros').update({
+      titulo: novo.title, funcionario: novo.funcionario, setor: novo.setor, tipo: novo.tipo,
+      data: novo.data, hora_inicio: novo.inicio, hora_fim: novo.fim,
+      prioridade: novo.priority, descricao: novo.desc
+    }).eq('numero', p.numero);
+    if (error) { console.error(error); showToast('Erro ao atualizar o registro.'); return; }
 
-    Object.assign(p, novo);
-    p.history = p.history || [];
-    p.history.push({ user: State.user.name, date: new Date().toLocaleString('pt-BR'), changes, reason });
+    await sb.from('historico_alteracoes').insert({
+      registro_numero: p.numero,
+      usuario_id: State.user.id,
+      usuario_nome: State.user.name,
+      alteracoes: changes,
+      motivo: reason || null
+    });
 
-    saveDataToStorage();
+    await carregarDados();
     renderApp();
     close();
     showToast(`Registro ${p.id} atualizado com sucesso.`);
   });
 }
+
 /* ---------- Login / Cadastro ---------- */
 function initLogin() {
-  document.getElementById('login-form').addEventListener('submit', (e) => {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim().toLowerCase();
-    const pass = document.getElementById('login-pass').value.trim();
+    const password = document.getElementById('login-pass').value;
 
-    const foundUser = State.users.find(u => u.email === email && u.pass === pass);
-    if (!foundUser) {
-      showToast('E-mail não cadastrado ou senha incorreta.');
-      return;
-    }
-    State.user = { ...foundUser };
-    updateUserSession();
-    showToast(`Bem-vindo de volta, ${State.user.name}!`);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { showToast('E-mail ou senha incorretos.'); return; }
+    if (await entrar(data.user)) showToast(`Bem-vindo de volta, ${State.user.name}!`);
   });
 
-  document.getElementById('logout-btn').addEventListener('click', () => {
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    State.user = { id: '', name: '', role: 'analista', email: '' };
+    State.protocols = [];
+    State.users = [];
     document.getElementById('app').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('login-form').reset();
@@ -148,25 +217,22 @@ function initLogin() {
 }
 
 function initRegister() {
-  document.getElementById('register-form').addEventListener('submit', (e) => {
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
-    const pass = document.getElementById('reg-pass').value.trim();
-    const activeChip = document.querySelector('#register-form .role-chip.active');
-    const role = activeChip ? activeChip.dataset.role : 'analista';
+    const pass = document.getElementById('reg-pass').value;
 
-    if (pass.length < 6) {
-      showToast('A senha precisa ter no mínimo 6 caracteres.');
+    if (pass.length < 6) { showToast('A senha precisa ter no mínimo 6 caracteres.'); return; }
+
+    const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { nome: name } } });
+    if (error) {
+      showToast(/already|registered/i.test(error.message)
+        ? 'Este e-mail já está cadastrado no sistema.'
+        : 'Erro ao criar conta: ' + error.message);
       return;
     }
-    if (State.users.some(u => u.email === email)) {
-      showToast('Este e-mail já está cadastrado no sistema.');
-      return;
-    }
-
-    State.users.push({ name, email, pass, role });
-    saveUsersToStorage();
+    await sb.auth.signOut(); // o usuário entra pela tela de login
 
     document.getElementById('register-modal').classList.remove('active');
     document.getElementById('register-form').reset();
@@ -180,59 +246,54 @@ function updateUserSession() {
   document.getElementById('sidebar-role-label').textContent = `Perfil: ${State.user.role.toUpperCase()}`;
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  renderApp();
+  document.querySelectorAll('.gestor-only').forEach(el => {
+    el.style.display = State.user.role === 'gestor' ? 'flex' : 'none';
+  });
+  showView('view-dashboard');
 }
 
 /* ---------- Navegação / Formulários / Filtros ---------- */
+function showView(id) {
+  if (id === 'view-usuarios' && State.user.role !== 'gestor') return;
+  document.querySelectorAll('.navlink').forEach(l => l.classList.toggle('active', l.dataset.target === id));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
+  renderApp();
+}
+
 function initNavigation() {
-  const navLinks = document.querySelectorAll('.navlink');
-  navLinks.forEach(link => link.addEventListener('click', () => {
-    navLinks.forEach(l => l.classList.remove('active'));
-    link.classList.add('active');
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(link.dataset.target).classList.add('active');
-    renderApp();
-  }));
+  document.querySelectorAll('.navlink').forEach(link =>
+    link.addEventListener('click', () => showView(link.dataset.target))
+  );
 }
 
 function initForms() {
-  document.getElementById('new-protocol-form').addEventListener('submit', (e) => {
+  document.getElementById('new-protocol-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const inicio = document.getElementById('proto-inicio').value;
     const fim = document.getElementById('proto-fim').value;
-    if (fim <= inicio) {
-      showToast('A hora de fim precisa ser depois da hora de início.');
-      return;
-    }
+    if (fim <= inicio) { showToast('A hora de fim precisa ser depois da hora de início.'); return; }
 
-    const newProtocol = {
-      id: gerarId(),
-      title: document.getElementById('proto-title').value,
+    const { data, error } = await sb.from('registros').insert({
+      titulo: document.getElementById('proto-title').value.trim(),
       funcionario: document.getElementById('proto-funcionario').value.trim(),
       setor: document.getElementById('proto-setor').value.trim(),
       tipo: document.getElementById('proto-tipo').value,
       data: document.getElementById('proto-data').value,
-      inicio,
-      fim,
-      priority: document.getElementById('proto-priority').value,
-      desc: document.getElementById('proto-desc').value,
-      author: State.user.name,
-      date: new Date().toLocaleString('pt-BR')
-    
-    };
+      hora_inicio: inicio,
+      hora_fim: fim,
+      prioridade: document.getElementById('proto-priority').value,
+      descricao: document.getElementById('proto-desc').value.trim(),
+      autor_id: State.user.id,
+      autor_nome: State.user.name
+    }).select().single();
 
-    State.protocols.unshift(newProtocol);
-    saveDataToStorage();
+    if (error) { console.error(error); showToast('Erro ao salvar o registro.'); return; }
+
+    await carregarDados();
     document.getElementById('new-protocol-form').reset();
-    showToast(`Protocolo ${newProtocol.id} gerado com sucesso.`);
-    document.querySelector('[data-target="view-protocolos"]').click();
+    showToast(`Registro ${codigoProtocolo(data.numero, data.criado_em)} gerado com sucesso.`);
+    showView('view-protocolos');
   });
-}
-function gerarId() {
-  const nums = State.protocols.map(p => parseInt(p.id.split('-').pop(), 10) || 0);
-  const prox = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `SIG-2026-${String(prox).padStart(3, '0')}`;
 }
 
 function initFilters() {
@@ -251,107 +312,23 @@ function initFilters() {
   const exp = document.getElementById('rep-export');
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
 }
+
 /* ---------- Renderização ---------- */
 function renderApp() {
   renderStats();
   renderRecentTable();
   renderProtocolsTable();
   renderReports();
+  renderProfile();
+  renderUsers();
 }
 
-function renderStats() {
-  const count = s => State.protocols.filter(p => p.status === s).length;
-  document.getElementById('stat-total').textContent = State.protocols.length;
-  document.getElementById('stat-pendentes').textContent = count('Pendente');
-  document.getElementById('stat-aprovados').textContent = count('Aprovado');
-  document.getElementById('stat-recusados').textContent = count('Recusado');
-}
-
-function renderRecentTable() {
-  const tbody = document.querySelector('#recent-table tbody');
-  tbody.innerHTML = '';
-  const recent = State.protocols.slice(0, 5);
-  if (recent.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty">Nenhum registro encontrado.</td></tr>`;
-    return;
-  }
-  recent.forEach(p => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="protocolo">${p.id}</span></td>
-      <td><strong>${escapeHTML(p.title)}</strong></td>
-      <td>${escapeHTML(p.funcionario || p.author)}</td>
-      <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function renderProtocolsTable() {
-  const tbody = document.querySelector('#protocols-table tbody');
-  tbody.innerHTML = '';
-
-  // lê o campo; se ele não existir no HTML, devolve texto vazio (não quebra)
-  const val = id => (document.getElementById(id) || {}).value || '';
-
-  const searchTerm = val('filter-search').toLowerCase();
-  const statusTerm = val('filter-status');
-  const func = val('filter-func').toLowerCase();
-  const setor = val('filter-setor').toLowerCase();
-  const tipo = val('filter-tipo');
-  const de = val('filter-inicio');
-  const ate = val('filter-fim');
-
-  const filtered = State.protocols.filter(p =>
-    (p.title.toLowerCase().includes(searchTerm) || p.id.toLowerCase().includes(searchTerm)) &&
-    (statusTerm === '' || p.status === statusTerm) &&
-    (func === '' || (p.funcionario || '').toLowerCase().includes(func)) &&
-    (setor === '' || (p.setor || '').toLowerCase().includes(setor)) &&
-    (tipo === '' || p.tipo === tipo) &&
-    (!de || (p.data && p.data >= de)) &&
-    (!ate || (p.data && p.data <= ate))
-  );
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">Nenhum registro corresponde aos filtros aplicados.</td></tr>`;
-    return;
-  }
-
-  filtered.forEach(p => {
-    const tr = document.createElement('tr');
-    let actionsHTML = `<span style="font-size:12px;color:var(--ink-soft)">Somente Leitura</span>`;
-
-    if (State.user.role === 'gestor') {
-      actionsHTML = `
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button class="btn-primary btn-sm" onclick="updateStatus('${p.id}', 'Aprovado')">Aprovar</button>
-          <button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="updateStatus('${p.id}', 'Recusado')">Recusar</button>
-          <button class="btn-secondary btn-sm" onclick="openUpdateModal('${p.id}')">Atualizar</button>
-          <button class="btn-secondary btn-sm" onclick="openUpdateModal('${p.id}')">Atualizar</button>
-<button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" onclick="deleteProtocol('${p.id}')">Apagar</button>
-        </div>
-      `;
-     
-    }
-     
-
-    tr.innerHTML = `
-      <td><span class="registro">${p.id}</span></td>
-      <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || p.category || '—')} • ${escapeHTML(p.priority)}</small></td>
-      <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
-      <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
-      <td>${escapeHTML(p.author)}<br><small style="color:var(--ink-soft);">${p.date}</small></td>
-      <td><span class="status-pill status-${p.status.toLowerCase()}">${p.status}</span></td>
-      <td>${actionsHTML}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
 function formatarData(iso) {
   if (!iso) return '—';
   const [a, m, d] = iso.split('-');
   return `${d}/${m}/${a}`;
 }
+
 function renderStats() {
   const unicos = campo => new Set(State.protocols.map(p => p[campo]).filter(Boolean)).size;
   document.getElementById('stat-total').textContent = State.protocols.length;
@@ -359,6 +336,7 @@ function renderStats() {
   document.getElementById('stat-setores').textContent = unicos('setor');
   document.getElementById('stat-urgentes').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
 }
+
 function renderRecentTable() {
   const tbody = document.querySelector('#recent-table tbody');
   tbody.innerHTML = '';
@@ -370,13 +348,14 @@ function renderRecentTable() {
   recent.forEach(p => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="protocolo">${p.id}</span></td>
+      <td><span class="protocolo">${escapeHTML(p.id)}</span></td>
       <td><strong>${escapeHTML(p.title)}</strong></td>
       <td>${escapeHTML(p.funcionario || p.author)}</td>
     `;
     tbody.appendChild(tr);
   });
 }
+
 function renderProtocolsTable() {
   const tbody = document.querySelector('#protocols-table tbody');
   tbody.innerHTML = '';
@@ -417,7 +396,7 @@ function renderProtocolsTable() {
     }
 
     tr.innerHTML = `
-      <td><span class="protocolo">${p.id}</span></td>
+      <td><span class="protocolo">${escapeHTML(p.id)}</span></td>
       <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || '—')} • ${escapeHTML(p.priority || '—')}</small></td>
       <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
       <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
@@ -427,16 +406,16 @@ function renderProtocolsTable() {
     tbody.appendChild(tr);
   });
 }
-function deleteProtocol(id) {
-  if (State.user.role !== 'gestor') {
-    showToast('Acesso negado: Apenas gestores podem apagar protocolos.');
-    return;
-  }
-  if (!confirm(`Apagar o protocolo ${id}? Essa ação não pode ser desfeita.`)) return;
-  State.protocols = State.protocols.filter(p => p.id !== id);
-  saveDataToStorage();
+
+async function deleteProtocol(id) {
+  if (State.user.role !== 'gestor') { showToast('Acesso negado: Apenas gestores podem apagar registros.'); return; }
+  const p = State.protocols.find(x => x.id === id);
+  if (!p || !confirm(`Apagar o registro ${id}? Essa ação não pode ser desfeita.`)) return;
+  const { error } = await sb.from('registros').delete().eq('numero', p.numero);
+  if (error) { showToast('Erro ao apagar o registro.'); return; }
+  await carregarDados();
   renderApp();
-  showToast(`Protocolo ${id} apagado.`);
+  showToast(`Registro ${id} apagado.`);
 }
 
 function renderReports() {
@@ -449,6 +428,117 @@ function renderReports() {
     : '<tr><td colspan="4" class="empty">Nenhuma atividade no período.</td></tr>';
 }
 
+/* ---------- Perfil ---------- */
+function renderProfile() {
+  const u = State.user;
+  if (!u.email || !document.getElementById('prof-name')) return;
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  const meus = State.protocols.filter(p => p.author === u.name);
+  const iniciais = u.name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
+
+  set('prof-avatar', iniciais || '?');
+  set('prof-name', u.name);
+  set('prof-email', u.email);
+  set('prof-name2', u.name);
+  set('prof-email2', u.email);
+  set('prof-role', u.role === 'gestor' ? 'Gestor' : 'Analista');
+  set('prof-since', u.createdAt || '—');
+  set('prof-count', meus.length);
+  set('prof-last', meus.length ? meus[0].date : '—');
+
+  const tb = document.querySelector('#prof-table tbody');
+  tb.innerHTML = meus.length
+    ? meus.slice(0, 5).map(p => `
+        <tr>
+          <td><span class="protocolo">${escapeHTML(p.id)}</span></td>
+          <td><strong>${escapeHTML(p.title)}</strong></td>
+          <td>${formatarData(p.data)}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="3" class="empty">Você ainda não fez nenhum registro.</td></tr>';
+}
+
+/* ---------- Usuários (gestor) ---------- */
+function initUsers() {
+  const search = document.getElementById('users-search');
+  if (search) search.addEventListener('input', renderUsers);
+
+  const tbody = document.querySelector('#users-table tbody');
+  if (!tbody) return;
+  tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'role') changeUserRole(btn.dataset.email);
+    if (btn.dataset.action === 'toggle') toggleUserActive(btn.dataset.email);
+  });
+}
+
+function renderUsers() {
+  const tbody = document.querySelector('#users-table tbody');
+  if (!tbody) return;
+  if (State.user.role !== 'gestor') { tbody.innerHTML = ''; return; }
+
+  const termo = (document.getElementById('users-search').value || '').toLowerCase();
+  const lista = State.users.filter(u =>
+    u.name.toLowerCase().includes(termo) || u.email.toLowerCase().includes(termo)
+  );
+
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum usuário encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lista.map(u => {
+    const qtd = State.protocols.filter(p => p.author === u.name).length;
+    const eu = u.email === State.user.email;
+    const email = escapeHTML(u.email);
+    const acoes = eu
+      ? '<span style="font-size:12px;color:var(--ink-soft)">Você</span>'
+      : `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+           <button class="btn-secondary btn-sm" data-action="role" data-email="${email}">
+             ${u.role === 'gestor' ? 'Tornar analista' : 'Tornar gestor'}
+           </button>
+           <button class="btn-secondary btn-sm" style="color:#d9534f; border-color:#d9534f;" data-action="toggle" data-email="${email}">
+             ${u.ativo === false ? 'Reativar' : 'Desativar'}
+           </button>
+         </div>`;
+    return `
+      <tr>
+        <td><strong>${escapeHTML(u.name)}</strong>${u.ativo === false ? ' <small style="color:#d9534f">(inativo)</small>' : ''}</td>
+        <td>${email}</td>
+        <td><span class="role-tag ${escapeHTML(u.role)}">${escapeHTML(u.role)}</span></td>
+        <td>${escapeHTML(u.createdAt || '—')}</td>
+        <td>${qtd}</td>
+        <td>${acoes}</td>
+      </tr>`;
+  }).join('');
+}
+
+async function changeUserRole(email) {
+  if (State.user.role !== 'gestor') { showToast('Acesso negado.'); return; }
+  if (email === State.user.email) { showToast('Você não pode alterar o seu próprio perfil.'); return; }
+  const u = State.users.find(x => x.email === email);
+  if (!u) return;
+  const novo = u.role === 'gestor' ? 'analista' : 'gestor';
+  const { error } = await sb.from('perfis').update({ papel: novo }).eq('id', u.id);
+  if (error) { showToast('Erro ao alterar o perfil.'); return; }
+  await carregarDados();
+  renderApp();
+  showToast(`${u.name} agora é ${novo}.`);
+}
+
+async function toggleUserActive(email) {
+  if (State.user.role !== 'gestor') { showToast('Acesso negado.'); return; }
+  if (email === State.user.email) { showToast('Você não pode desativar a si mesmo.'); return; }
+  const u = State.users.find(x => x.email === email);
+  if (!u) return;
+  const ativo = u.ativo === false;
+  const { error } = await sb.from('perfis').update({ ativo }).eq('id', u.id);
+  if (error) { showToast('Erro ao alterar o usuário.'); return; }
+  await carregarDados();
+  renderApp();
+  showToast(ativo ? `${u.name} reativado.` : `${u.name} desativado.`);
+}
+
 /* ---------- Utilitários ---------- */
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -457,27 +547,12 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
- function saveDataToStorage() {
-  localStorage.setItem('sigraf_protocols', JSON.stringify(State.protocols));
-}
- 
-
-function saveUsersToStorage() {
-  localStorage.setItem('sigraf_users', JSON.stringify(State.users));
-}
-
-function loadDataFromStorage() {
-  const pData = localStorage.getItem('sigraf_protocols');
-  if (pData) { try { State.protocols = JSON.parse(pData); } catch (e) {} }
-  const uData = localStorage.getItem('sigraf_users');
-  if (uData) { try { State.users = JSON.parse(uData); } catch (e) {} }
-}
-
 function escapeHTML(str) {
   return String(str).replace(/[&<>'"]/g,
     tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
   );
 }
+
 function minutos(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
