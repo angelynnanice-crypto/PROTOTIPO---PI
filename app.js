@@ -457,9 +457,10 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-function saveDataToStorage() {
- 
+ function saveDataToStorage() {
+  localStorage.setItem('sigraf_protocols', JSON.stringify(State.protocols));
 }
+ 
 
 function saveUsersToStorage() {
   localStorage.setItem('sigraf_users', JSON.stringify(State.users));
