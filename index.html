@@ -114,6 +114,27 @@
               <option>Baixa</option><option>Normal</option><option>Alta</option><option>Urgente</option>
             </select>
           </div>
+          <div class="upd-settings" id="upd-cobertura" style="grid-column: span 2;">
+  <h4>Detalhes da cobertura</h4>
+  <div class="form-grid">
+    <div class="field">
+      <label for="upd-substituto">Substituto (quem cobre)</label>
+      <input type="text" id="upd-substituto">
+    </div>
+    <div class="field">
+      <label for="upd-substituto-turno">Turno do substituto</label>
+      <input type="text" id="upd-substituto-turno" list="lista-turnos">
+    </div>
+    <div class="field">
+      <label for="upd-substituido">Substituído (quem é coberto)</label>
+      <input type="text" id="upd-substituido">
+    </div>
+    <div class="field">
+      <label for="upd-substituido-turno">Turno do substituído</label>
+      <input type="text" id="upd-substituido-turno" list="lista-turnos">
+    </div>
+  </div>
+</div>
           <div class="field full"><label for="upd-desc">Descrição</label><textarea id="upd-desc"></textarea></div>
         </div>
 
@@ -247,7 +268,7 @@
               <table id="protocols-table">
                 <thead>
                   <tr>
-                    <th>Protocolo</th>
+                    <th>Registro</th>
                     <th>Atividade</th>
                     <th>Funcionário / Setor</th>
                     <th>Data e horário</th>
@@ -316,6 +337,28 @@
                     <option>Urgente</option>
                   </select>
                 </div>
+
+                <div class="upd-settings" id="proto-cobertura" style="grid-column: span 2;">
+  <h4>Detalhes da cobertura</h4>
+  <div class="form-grid">
+    <div class="field">
+      <label for="proto-substituto">Substituto (quem cobre)</label>
+      <input type="text" id="proto-substituto" placeholder="Nome do colaborador">
+    </div>
+    <div class="field">
+      <label for="proto-substituto-turno">Turno do substituto</label>
+      <input type="text" id="proto-substituto-turno" list="lista-turnos" placeholder="Ex: Manhã">
+    </div>
+    <div class="field">
+      <label for="proto-substituido">Substituído (quem é coberto)</label>
+      <input type="text" id="proto-substituido" placeholder="Nome do colaborador">
+    </div>
+    <div class="field">
+      <label for="proto-substituido-turno">Turno do substituído</label>
+      <input type="text" id="proto-substituido-turno" list="lista-turnos" placeholder="Ex: Tarde">
+    </div>
+  </div>
+</div>
                 <div class="field full">
                   <label for="proto-desc">Descrição Detalhada</label>
                   <textarea id="proto-desc" placeholder="Descreva a atividade..."></textarea>
@@ -430,7 +473,12 @@
       </main>
     </div>
   </div>
-
+<datalist id="lista-turnos">
+  <option value="Manhã"></option>
+  <option value="Tarde"></option>
+  <option value="Noite"></option>
+  <option value="Madrugada"></option>
+</datalist>
   <!-- NOTIFICAÇÃO TOAST -->
   <div class="toast" id="toast">Operação realizada com sucesso.</div>
 

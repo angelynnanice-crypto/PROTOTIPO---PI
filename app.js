@@ -80,6 +80,10 @@ async function carregarDados() {
     fim: (r.hora_fim || '').slice(0, 5),
     priority: r.prioridade,
     desc: r.descricao || '',
+    substituto: r.substituto_nome || '',
+    substitutoTurno: r.substituto_turno || '',
+    substituido: r.substituido_nome || '',
+    substituidoTurno: r.substituido_turno || '',
     author: r.autor_nome || '—',
     date: new Date(r.criado_em).toLocaleString('pt-BR'),
     history: hist[r.numero] || []
@@ -115,6 +119,11 @@ function openUpdateModal(id) {
   document.getElementById('upd-priority').value = p.priority || 'Normal';
   document.getElementById('upd-desc').value = p.desc || '';
   document.getElementById('upd-reason').value = '';
+  document.getElementById('upd-substituto').value = p.substituto || '';
+  document.getElementById('upd-substituto-turno').value = p.substitutoTurno || '';
+  document.getElementById('upd-substituido').value = p.substituido || '';
+  document.getElementById('upd-substituido-turno').value = p.substituidoTurno || '';
+  mostrarCobertura('upd');
 
   const hist = p.history || [];
   document.getElementById('upd-history').innerHTML = hist.length
@@ -135,6 +144,7 @@ function initUpdateModal() {
   document.getElementById('close-update-modal').addEventListener('click', close);
   document.getElementById('cancel-update').addEventListener('click', close);
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  document.getElementById('upd-tipo').addEventListener('change', () => mostrarCobertura('upd'));
 
   document.getElementById('update-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -142,24 +152,26 @@ function initUpdateModal() {
     const p = State.protocols.find(x => x.id === document.getElementById('upd-id').value);
     if (!p) return;
 
+    const tipo = document.getElementById('upd-tipo').value;
     const novo = {
       title: document.getElementById('upd-title').value.trim(),
       funcionario: document.getElementById('upd-funcionario').value.trim(),
       setor: document.getElementById('upd-setor').value.trim(),
-      tipo: document.getElementById('upd-tipo').value,
+      tipo,
       data: document.getElementById('upd-data').value,
       inicio: document.getElementById('upd-inicio').value,
       fim: document.getElementById('upd-fim').value,
       priority: document.getElementById('upd-priority').value,
-      desc: document.getElementById('upd-desc').value.trim()
+      desc: document.getElementById('upd-desc').value.trim(),
+      ...lerCobertura('upd', tipo)
     };
     const reason = document.getElementById('upd-reason').value.trim();
-    const labels = { title: 'Título', funcionario: 'Funcionário', setor: 'Setor', tipo: 'Tipo', data: 'Data', inicio: 'Início', fim: 'Fim', priority: 'Prioridade', desc: 'Descrição' };
-
-    if (novo.inicio && novo.fim && novo.fim <= novo.inicio) {
-      showToast('A hora de fim precisa ser depois da hora de início.');
-      return;
-    }
+        const labels = {
+      title: 'Título', funcionario: 'Funcionário', setor: 'Setor', tipo: 'Tipo', data: 'Data',
+      inicio: 'Início', fim: 'Fim', priority: 'Prioridade', desc: 'Descrição',
+      substituto: 'Substituto', substitutoTurno: 'Turno do substituto',
+      substituido: 'Substituído', substituidoTurno: 'Turno do substituído'
+    };
 
     const changes = [];
     Object.keys(labels).forEach(k => {
@@ -170,12 +182,15 @@ function initUpdateModal() {
     });
     if (changes.length === 0) { showToast('Nenhuma alteração foi feita.'); return; }
 
-    const { error } = await sb.from('registros').update({
+       const { error } = await sb.from('registros').update({
       titulo: novo.title, funcionario: novo.funcionario, setor: novo.setor, tipo: novo.tipo,
       data: novo.data, hora_inicio: novo.inicio, hora_fim: novo.fim,
-      prioridade: novo.priority, descricao: novo.desc
+      prioridade: novo.priority, descricao: novo.desc,
+      substituto_nome: novo.substituto || null,
+      substituto_turno: novo.substitutoTurno || null,
+      substituido_nome: novo.substituido || null,
+      substituido_turno: novo.substituidoTurno || null
     }).eq('numero', p.numero);
-    if (error) { console.error(error); showToast('Erro ao atualizar o registro.'); return; }
 
     await sb.from('historico_alteracoes').insert({
       registro_numero: p.numero,
@@ -267,24 +282,33 @@ function initNavigation() {
 }
 
 function initForms() {
+  document.getElementById('proto-tipo').addEventListener('change', () => mostrarCobertura('proto'));
+  document.getElementById('new-protocol-form').addEventListener('reset', () => setTimeout(() => mostrarCobertura('proto')));
+  mostrarCobertura('proto');
   document.getElementById('new-protocol-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const inicio = document.getElementById('proto-inicio').value;
     const fim = document.getElementById('proto-fim').value;
+    const tipo = document.getElementById('proto-tipo').value;
+    const cob = lerCobertura('proto', tipo);
     if (fim <= inicio) { showToast('A hora de fim precisa ser depois da hora de início.'); return; }
 
     const { data, error } = await sb.from('registros').insert({
       titulo: document.getElementById('proto-title').value.trim(),
       funcionario: document.getElementById('proto-funcionario').value.trim(),
       setor: document.getElementById('proto-setor').value.trim(),
-      tipo: document.getElementById('proto-tipo').value,
+      tipo,
       data: document.getElementById('proto-data').value,
       hora_inicio: inicio,
       hora_fim: fim,
       prioridade: document.getElementById('proto-priority').value,
       descricao: document.getElementById('proto-desc').value.trim(),
       autor_id: State.user.id,
-      autor_nome: State.user.name
+      autor_nome: State.user.name,
+      substituto_nome: cob.substituto || null,
+      substituto_turno: cob.substitutoTurno || null,
+      substituido_nome: cob.substituido || null,
+      substituido_turno: cob.substituidoTurno || null
     }).select().single();
 
     if (error) { console.error(error); showToast('Erro ao salvar o registro.'); return; }
@@ -395,14 +419,15 @@ function renderProtocolsTable() {
       `;
     }
 
-    tr.innerHTML = `
+       tr.innerHTML = `
       <td><span class="protocolo">${escapeHTML(p.id)}</span></td>
       <td><strong>${escapeHTML(p.title)}</strong><br><small style="color:var(--ink-soft);">${escapeHTML(p.tipo || '—')} • ${escapeHTML(p.priority || '—')}</small></td>
-      <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small></td>
+      <td>${escapeHTML(p.funcionario || '—')}<br><small style="color:var(--ink-soft);">${escapeHTML(p.setor || '—')}</small>${detalheCobertura(p)}</td>
       <td>${formatarData(p.data)}<br><small style="color:var(--ink-soft);">${p.inicio ? p.inicio + ' às ' + p.fim : '—'}</small></td>
       <td>${escapeHTML(p.author)}<br><small style="color:var(--ink-soft);">${p.date}</small></td>
       <td>${actionsHTML}</td>
     `;
+    
     tbody.appendChild(tr);
   });
 }
@@ -537,6 +562,33 @@ async function toggleUserActive(email) {
   await carregarDados();
   renderApp();
   showToast(ativo ? `${u.name} reativado.` : `${u.name} desativado.`);
+}
+/* ---------- Cobertura ---------- */
+const TIPOS_COBERTURA = ['Substituição temporária', 'Cobertura de horário'];
+
+function mostrarCobertura(prefix) {
+  const tipo = document.getElementById(`${prefix}-tipo`).value;
+  document.getElementById(`${prefix}-cobertura`).style.display =
+    TIPOS_COBERTURA.includes(tipo) ? 'block' : 'none';
+}
+
+function lerCobertura(prefix, tipo) {
+  const v = id => TIPOS_COBERTURA.includes(tipo)
+    ? document.getElementById(`${prefix}-${id}`).value.trim()
+    : '';
+  return {
+    substituto: v('substituto'),
+    substitutoTurno: v('substituto-turno'),
+    substituido: v('substituido'),
+    substituidoTurno: v('substituido-turno')
+  };
+}
+
+function detalheCobertura(p) {
+  if (!p.substituto && !p.substituido) return '';
+  const linha = (rotulo, nome, turno) =>
+    `${rotulo}: ${escapeHTML(nome || '—')}${turno ? ' (' + escapeHTML(turno) + ')' : ''}`;
+  return `<br><small style="color:var(--ink-soft);">${linha('Substituto', p.substituto, p.substitutoTurno)}<br>${linha('Substituído', p.substituido, p.substituidoTurno)}</small>`;
 }
 
 /* ---------- Utilitários ---------- */
