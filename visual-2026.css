@@ -71,3 +71,24 @@ tbody tr:hover{background:#f8fbfc}
 @media(max-width:760px){#app{height:auto;min-height:100dvh}.shell{flex-direction:column}.sidebar{width:100%;padding:13px 16px;position:relative}.sidebar .brand-header{padding:0 0 12px}.sidebar .brand-header p{display:none}.navlist{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;margin:11px 0}.navlink{min-height:39px;padding:9px 11px;flex:0 1 auto;font-size:12px}.navlink svg{width:15px;height:15px}.sidebar-foot{padding:8px 0 2px}.main{padding:24px 14px;overflow:visible}.topbar{align-items:flex-start;flex-wrap:wrap}.panel{padding:19px 14px;overflow-x:auto}.stats-row{gap:10px}.stat-card{padding:18px}.stat-card .num{font-size:26px}.modal-card{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important;overflow-y:auto;padding:24px 20px}table{min-width:580px}#auth-screen:before{display:none}}
 @media(max-width:410px){.login-card{padding:32px 23px}.stats-row{grid-template-columns:1fr 1fr}.navlink{font-size:11px}.topbar h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* WK Soluções Industriais: direção visual inspirada em engenharia,
+   operação e documentação; não reproduz manual oficial de marca. */
+:root{--bg-dark:#102235;--purple-deep:#14283b;--purple-mid:#166588;--accent-pink:#ed9e42;--accent-peach:#f5d5ad;--ink:#1c3041;--ink-soft:#647589}
+#auth-screen{background:radial-gradient(circle at 81% 19%,rgba(44,97,128,.6),transparent 35%),linear-gradient(125deg,#0a1b2b 0%,#142f45 70%,#19394c 100%)}
+#auth-screen:after{content:"WK / SOLUÇÕES INDUSTRIAIS";display:block;position:absolute;bottom:39px;left:50%;transform:translateX(-50%);color:#a9bfcb;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.2em;white-space:nowrap}
+.stamp{background:linear-gradient(135deg,#12577a,#1c7893);font-size:22px;letter-spacing:-.13em;padding-right:4px}
+.stamp .mark-dot{color:#f1a445;letter-spacing:0}
+.sidebar .stamp{background:#f5f9fa;color:#12344a}
+.sidebar .stamp .mark-dot{color:#dc8a29}
+.sidebar{background:linear-gradient(180deg,#142b3e 0%,#0b2030 100%)}
+.navlink.active{background:#27495f;box-shadow:inset 3px 0 0 #f1a445}
+.stat-card:before{background:#eea349}
+.btn-primary{background:#11617f;box-shadow:0 5px 15px rgba(17,97,127,.18)}
+.btn-primary:hover{background:#0b4e69}
+.protocolo{color:#166b8c}
+.wk-context{padding:28px 30px;margin:0 0 23px;background:linear-gradient(105deg,#132c40,#1d4256);border-radius:16px;color:#fff;display:flex;flex-direction:column;gap:9px;box-shadow:0 12px 24px rgba(14,38,56,.09)}
+.wk-context__flag{font:600 10px 'IBM Plex Mono',monospace;color:#e9b677;letter-spacing:.13em}
+.wk-context strong{font-size:clamp(19px,2vw,25px);line-height:1.3;letter-spacing:-.025em}
+.wk-context>span:last-child{font-size:13px;line-height:1.7;color:#c3d6df;max-width:700px}
+@media(max-width:760px){.wk-context{padding:23px 20px}.wk-context strong{font-size:20px}}
