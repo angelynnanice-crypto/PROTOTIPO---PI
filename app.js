@@ -172,6 +172,16 @@ function initUpdateModal() {
       desc: document.getElementById('upd-desc').value.trim(),
       ...lerCobertura('upd', tipo)
     };
+    // Conferimos os campos e o horário antes de atualizar.
+    if (!novo.title || !novo.funcionario || !novo.setor || !novo.data || !novo.inicio || !novo.fim) {
+      showToast('Preencha os campos principais da atividade.'); return;
+    }
+    if (novo.fim <= novo.inicio) {
+      showToast('A hora final precisa ser depois da inicial.'); return;
+    }
+    if (TIPOS_COBERTURA.includes(tipo) && (!novo.substituto || !novo.substituido)) {
+      showToast('Informe quem substitui e quem será substituído.'); return;
+    }
     const reason = document.getElementById('upd-reason').value.trim();
         const labels = {
       title: 'Título', funcionario: 'Funcionário', setor: 'Setor', tipo: 'Tipo', data: 'Data',
@@ -199,7 +209,12 @@ function initUpdateModal() {
       substituido_turno: novo.substituidoTurno || null
     }).eq('numero', p.numero);
 
-    await sb.from('historico_alteracoes').insert({
+    if (error) {
+      console.error('Falha na atualização:', error);
+      showToast('Não foi possível atualizar o registro.'); return;
+    }
+    // O histórico deixa registrado o que foi alterado e por quem.
+    const { error: erroHistorico } = await sb.from('historico_alteracoes').insert({
       registro_numero: p.numero,
       usuario_id: State.user.id,
       usuario_nome: State.user.name,
@@ -210,7 +225,12 @@ function initUpdateModal() {
     await carregarDados();
     renderApp();
     close();
-    showToast(`Registro ${p.id} atualizado com sucesso.`);
+    if (erroHistorico) {
+      console.error('Falha no histórico:', erroHistorico);
+      showToast('Registro atualizado, mas o histórico não foi salvo.');
+    } else {
+      showToast(`Registro ${p.id} atualizado com sucesso.`);
+    }
   });
 }
 
@@ -235,6 +255,7 @@ function initLogin() {
     document.getElementById('app').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('login-form').reset();
+    document.getElementById('register-form').reset();
     showToast('Sessão encerrada.');
   });
 }
@@ -304,6 +325,9 @@ function initForms() {
     const cob = lerCobertura('proto', tipo);
     // Não aceitamos um horário final anterior ou igual ao inicial.
     if (fim <= inicio) { showToast('A hora de fim precisa ser depois da hora de início.'); return; }
+    if (TIPOS_COBERTURA.includes(tipo) && (!cob.substituto || !cob.substituido)) {
+      showToast('Informe o substituto e o funcionário substituído.'); return;
+    }
 
     const { data, error } = await sb.from('registros').insert({
       titulo: document.getElementById('proto-title').value.trim(),
@@ -621,12 +645,13 @@ function showToast(message) {
 
 // Evitamos que textos digitados sejam interpretados como código HTML.
 function escapeHTML(str) {
-  return String(str).replace(/[&<>'"]/g,
+  return String(str ?? '').replace(/[&<>'"]/g,
     tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
   );
 }
 
 function minutos(hhmm) {
+  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(hhmm || '')) return 0;
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
@@ -643,7 +668,10 @@ function getRelatorio() {
     const chave = p.funcionario + '|' + p.setor;
     if (!mapa[chave]) mapa[chave] = { funcionario: p.funcionario, setor: p.setor || '—', qtd: 0, min: 0 };
     mapa[chave].qtd++;
-    mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
+    // Só somamos a duração quando os horários estão preenchidos.
+    if (p.inicio && p.fim && minutos(p.fim) > minutos(p.inicio)) {
+      mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
+    }
   });
   return Object.values(mapa).map(r => ({ ...r, horas: (r.min / 60).toFixed(1) }));
 }
@@ -658,4 +686,5 @@ function exportarCSV(lista) {
   a.href = URL.createObjectURL(blob);
   a.download = 'relatorio.csv';
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
