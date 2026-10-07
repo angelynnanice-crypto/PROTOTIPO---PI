@@ -651,7 +651,7 @@ function escapeHTML(str) {
 }
 
 function minutos(hhmm) {
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(hhmm || '')) return 0;
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hhmm || '')) return 0;
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
