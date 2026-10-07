@@ -21,11 +21,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (data.session) await entrar(data.session.user);
 });
 
-/* ---------- Dados (Supabase) ---------- */
+/* ---------- Dados do sistema ---------- */
+// O Supabase guarda os registros e usuários para que os dados não fiquem só neste computador.
+// As regras de acesso também precisam ser configuradas no banco, não apenas nesta tela.
 function codigoProtocolo(numero, criadoEm) {
   return `SIG-${new Date(criadoEm).getFullYear()}-${String(numero).padStart(3, '0')}`;
 }
 
+// Depois do login, buscamos o perfil e verificamos se a conta está ativa.
 async function entrar(authUser) {
   const { data: perfil, error } = await sb.from('perfis').select('*').eq('id', authUser.id).single();
   if (error || !perfil || !perfil.ativo) {
@@ -45,6 +48,7 @@ async function entrar(authUser) {
   return true;
 }
 
+// Carregamos os registros do banco para mostrar as informações atualizadas nas telas.
 async function carregarDados() {
   const { data: prots, error } = await sb.from('registros').select('*').order('numero', { ascending: false });
   if (error) { console.error(error); showToast('Erro ao carregar os registros.'); return; }
@@ -90,7 +94,8 @@ async function carregarDados() {
   }));
 }
 
-/* ---------- Modal de cadastro ---------- */
+/* ---------- Janelas de cadastro e edição ---------- */
+// Modal é uma janela que aparece por cima da tela principal.
 function initModal() {
   const modal = document.getElementById('register-modal');
   document.getElementById('open-register-modal').addEventListener('click', (e) => {
@@ -102,6 +107,7 @@ function initModal() {
 }
 
 /* ---------- Modal de atualização de protocolo ---------- */
+// Preenchemos a janela de edição com os dados do registro escolhido.
 function openUpdateModal(id) {
   if (State.user.role !== 'gestor') return;
   const p = State.protocols.find(x => x.id === id);
@@ -138,6 +144,7 @@ function openUpdateModal(id) {
   document.getElementById('update-modal').classList.add('active');
 }
 
+// Aqui cuidamos do botão de salvar e do fechamento da janela de edição.
 function initUpdateModal() {
   const modal = document.getElementById('update-modal');
   const close = () => modal.classList.remove('active');
@@ -165,6 +172,16 @@ function initUpdateModal() {
       desc: document.getElementById('upd-desc').value.trim(),
       ...lerCobertura('upd', tipo)
     };
+    // Conferimos os campos e o horário antes de atualizar.
+    if (!novo.title || !novo.funcionario || !novo.setor || !novo.data || !novo.inicio || !novo.fim) {
+      showToast('Preencha os campos principais da atividade.'); return;
+    }
+    if (novo.fim <= novo.inicio) {
+      showToast('A hora final precisa ser depois da inicial.'); return;
+    }
+    if (TIPOS_COBERTURA.includes(tipo) && (!novo.substituto || !novo.substituido)) {
+      showToast('Informe quem substitui e quem será substituído.'); return;
+    }
     const reason = document.getElementById('upd-reason').value.trim();
         const labels = {
       title: 'Título', funcionario: 'Funcionário', setor: 'Setor', tipo: 'Tipo', data: 'Data',
@@ -192,7 +209,12 @@ function initUpdateModal() {
       substituido_turno: novo.substituidoTurno || null
     }).eq('numero', p.numero);
 
-    await sb.from('historico_alteracoes').insert({
+    if (error) {
+      console.error('Falha na atualização:', error);
+      showToast('Não foi possível atualizar o registro.'); return;
+    }
+    // O histórico deixa registrado o que foi alterado e por quem.
+    const { error: erroHistorico } = await sb.from('historico_alteracoes').insert({
       registro_numero: p.numero,
       usuario_id: State.user.id,
       usuario_nome: State.user.name,
@@ -203,11 +225,17 @@ function initUpdateModal() {
     await carregarDados();
     renderApp();
     close();
-    showToast(`Registro ${p.id} atualizado com sucesso.`);
+    if (erroHistorico) {
+      console.error('Falha no histórico:', erroHistorico);
+      showToast('Registro atualizado, mas o histórico não foi salvo.');
+    } else {
+      showToast(`Registro ${p.id} atualizado com sucesso.`);
+    }
   });
 }
 
-/* ---------- Login / Cadastro ---------- */
+/* ---------- Entrada e criação de conta ---------- */
+// O Supabase confere a senha. Não guardamos senhas dentro deste arquivo.
 function initLogin() {
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -227,6 +255,7 @@ function initLogin() {
     document.getElementById('app').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('login-form').reset();
+    document.getElementById('register-form').reset();
     showToast('Sessão encerrada.');
   });
 }
@@ -256,6 +285,7 @@ function initRegister() {
   });
 }
 
+// Ajustamos a interface de acordo com o perfil de quem entrou.
 function updateUserSession() {
   document.getElementById('sidebar-user-name').textContent = State.user.name;
   document.getElementById('sidebar-role-label').textContent = `Perfil: ${State.user.role.toUpperCase()}`;
@@ -267,7 +297,8 @@ function updateUserSession() {
   showView('view-dashboard');
 }
 
-/* ---------- Navegação / Formulários / Filtros ---------- */
+/* ---------- Telas, novo registro e filtros ---------- */
+// Mostramos a tela escolhida no menu e escondemos as outras.
 function showView(id) {
   if (id === 'view-usuarios' && State.user.role !== 'gestor') return;
   document.querySelectorAll('.navlink').forEach(l => l.classList.toggle('active', l.dataset.target === id));
@@ -281,6 +312,7 @@ function initNavigation() {
   );
 }
 
+// Lemos o formulário, conferimos o horário e enviamos o novo registro ao banco.
 function initForms() {
   document.getElementById('proto-tipo').addEventListener('change', () => mostrarCobertura('proto'));
   document.getElementById('new-protocol-form').addEventListener('reset', () => setTimeout(() => mostrarCobertura('proto')));
@@ -291,7 +323,11 @@ function initForms() {
     const fim = document.getElementById('proto-fim').value;
     const tipo = document.getElementById('proto-tipo').value;
     const cob = lerCobertura('proto', tipo);
+    // Não aceitamos um horário final anterior ou igual ao inicial.
     if (fim <= inicio) { showToast('A hora de fim precisa ser depois da hora de início.'); return; }
+    if (TIPOS_COBERTURA.includes(tipo) && (!cob.substituto || !cob.substituido)) {
+      showToast('Informe o substituto e o funcionário substituído.'); return;
+    }
 
     const { data, error } = await sb.from('registros').insert({
       titulo: document.getElementById('proto-title').value.trim(),
@@ -320,6 +356,7 @@ function initForms() {
   });
 }
 
+// Os filtros ajudam a encontrar uma atividade sem procurar linha por linha.
 function initFilters() {
   ['filter-search', 'filter-func', 'filter-setor'].forEach(id => {
     const el = document.getElementById(id);
@@ -337,7 +374,8 @@ function initFilters() {
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
 }
 
-/* ---------- Renderização ---------- */
+/* ---------- Atualização das informações na tela ---------- */
+// Quando os dados mudam, atualizamos tabelas, indicadores e relatórios.
 function renderApp() {
   renderStats();
   renderRecentTable();
@@ -353,6 +391,7 @@ function formatarData(iso) {
   return `${d}/${m}/${a}`;
 }
 
+// Contamos os registros, funcionários, setores e atividades urgentes.
 function renderStats() {
   const unicos = campo => new Set(State.protocols.map(p => p[campo]).filter(Boolean)).size;
   document.getElementById('stat-total').textContent = State.protocols.length;
@@ -380,6 +419,7 @@ function renderRecentTable() {
   });
 }
 
+// Montamos a tabela usando apenas os registros que passaram pelos filtros.
 function renderProtocolsTable() {
   const tbody = document.querySelector('#protocols-table tbody');
   tbody.innerHTML = '';
@@ -432,6 +472,7 @@ function renderProtocolsTable() {
   });
 }
 
+// Antes de apagar, pedimos confirmação para evitar exclusões sem querer.
 async function deleteProtocol(id) {
   if (State.user.role !== 'gestor') { showToast('Acesso negado: Apenas gestores podem apagar registros.'); return; }
   const p = State.protocols.find(x => x.id === id);
@@ -443,6 +484,7 @@ async function deleteProtocol(id) {
   showToast(`Registro ${id} apagado.`);
 }
 
+// Mostramos o resumo das atividades para apoiar a consulta e prestação de contas.
 function renderReports() {
   document.getElementById('rep-total').textContent = State.protocols.length;
   document.getElementById('rep-urgent-count').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
@@ -482,7 +524,8 @@ function renderProfile() {
     : '<tr><td colspan="3" class="empty">Você ainda não fez nenhum registro.</td></tr>';
 }
 
-/* ---------- Usuários (gestor) ---------- */
+/* ---------- Administração de usuários ---------- */
+// Estas ações aparecem para o gestor, mas a permissão real depende das regras do banco.
 function initUsers() {
   const search = document.getElementById('users-search');
   if (search) search.addEventListener('input', renderUsers);
@@ -563,9 +606,10 @@ async function toggleUserActive(email) {
   renderApp();
   showToast(ativo ? `${u.name} reativado.` : `${u.name} desativado.`);
 }
-/* ---------- Cobertura ---------- */
+/* ---------- Substituições e coberturas de horário ---------- */
 const TIPOS_COBERTURA = ['Substituição temporária', 'Cobertura de horário'];
 
+// Os campos extras só aparecem quando a atividade envolve uma substituição.
 function mostrarCobertura(prefix) {
   const tipo = document.getElementById(`${prefix}-tipo`).value;
   document.getElementById(`${prefix}-cobertura`).style.display =
@@ -591,7 +635,7 @@ function detalheCobertura(p) {
   return `<br><small style="color:var(--ink-soft);">${linha('Substituto', p.substituto, p.substitutoTurno)}<br>${linha('Substituído', p.substituido, p.substituidoTurno)}</small>`;
 }
 
-/* ---------- Utilitários ---------- */
+/* ---------- Pequenas funções usadas em várias partes ---------- */
 function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
@@ -599,17 +643,20 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
+// Evitamos que textos digitados sejam interpretados como código HTML.
 function escapeHTML(str) {
-  return String(str).replace(/[&<>'"]/g,
+  return String(str ?? '').replace(/[&<>'"]/g,
     tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
   );
 }
 
 function minutos(hhmm) {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hhmm || '')) return 0;
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
 
+// Reunimos as atividades por funcionário e setor dentro do período escolhido.
 function getRelatorio() {
   const de = document.getElementById('rep-inicio').value;
   const ate = document.getElementById('rep-fim').value;
@@ -621,11 +668,15 @@ function getRelatorio() {
     const chave = p.funcionario + '|' + p.setor;
     if (!mapa[chave]) mapa[chave] = { funcionario: p.funcionario, setor: p.setor || '—', qtd: 0, min: 0 };
     mapa[chave].qtd++;
-    mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
+    // Só somamos a duração quando os horários estão preenchidos.
+    if (p.inicio && p.fim && minutos(p.fim) > minutos(p.inicio)) {
+      mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
+    }
   });
   return Object.values(mapa).map(r => ({ ...r, horas: (r.min / 60).toFixed(1) }));
 }
 
+// Criamos uma planilha CSV, que pode ser aberta no Excel ou LibreOffice.
 function exportarCSV(lista) {
   const linhas = [['Funcionário', 'Setor', 'Atividades', 'Horas']];
   lista.forEach(r => linhas.push([r.funcionario, r.setor, r.qtd, String(r.horas).replace('.', ',')]));
@@ -635,4 +686,5 @@ function exportarCSV(lista) {
   a.href = URL.createObjectURL(blob);
   a.download = 'relatorio.csv';
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

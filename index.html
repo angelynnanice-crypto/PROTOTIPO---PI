@@ -7,17 +7,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="visual-2026.css">
 </head>
 <body>
 
+  <!-- Estas telas usam os mesmos IDs lidos pelo app.js. Se mudar um ID aqui, precisamos ajustar o JavaScript também. -->
   <!-- TELA DE AUTENTICAÇÃO (LOGIN COM MODAL DE CADASTRO) -->
   <div id="auth-screen">
     <div class="login-card">
       <div class="brand-header">
-        <div class="stamp">CT</div>
+        <div class="stamp" aria-hidden="true">C<span class="mark-dot">.</span></div>
         <div>
           <h1>CENTRALIZAR</h1>
-          <p>Registro e Gestão de Atividades</p>
+          <p>Gestão de atividades funcionais</p>
         </div>
       </div>
 
@@ -38,7 +40,7 @@
         <a href="#" id="open-register-modal">Criar Conta</a>
       </div>
 
-      <div class="login-foot">Ambiente seguro CENTRALIZAR v1.0</div>
+      <div class="login-foot">Protótipo acadêmico · Projeto Integrador SENAI</div>
     </div>
   </div>
 
@@ -47,7 +49,7 @@
     <div class="modal-card">
       <button class="modal-close" id="close-register-modal">&times;</button>
       <div class="brand-header">
-        <div class="stamp">CT</div>
+        <div class="stamp" aria-hidden="true">C<span class="mark-dot">.</span></div>
         <div>
           <h1>Nova Conta</h1>
           <p>Cadastre suas credenciais para acesso</p>
@@ -82,7 +84,7 @@
     <div class="modal-card" style="max-width:560px; max-height:90vh; overflow-y:auto;">
       <button class="modal-close" id="close-update-modal" type="button">&times;</button>
       <div class="brand-header">
-        <div class="stamp">CT</div>
+        <div class="stamp" aria-hidden="true">C<span class="mark-dot">.</span></div>
         <div>
           <h1>Atualizar Registro</h1>
           <p id="upd-proto-id"></p>
@@ -94,8 +96,8 @@
 
         <div class="form-grid">
           <div class="field full"><label for="upd-title">Título da Atividade</label><input type="text" id="upd-title" required></div>
-          <div class="field"><label for="upd-funcionario">Funcionário</label><input type="text" id="upd-funcionario"></div>
-          <div class="field"><label for="upd-setor">Setor</label><input type="text" id="upd-setor"></div>
+          <div class="field"><label for="upd-funcionario">Funcionário</label><input type="text" id="upd-funcionario" required></div>
+          <div class="field"><label for="upd-setor">Setor</label><input type="text" id="upd-setor" required></div>
           <div class="field">
             <label for="upd-tipo">Tipo de Atividade</label>
             <select id="upd-tipo">
@@ -105,7 +107,7 @@
               <option>Atividade extraordinária</option>
             </select>
           </div>
-          <div class="field"><label for="upd-data">Data</label><input type="date" id="upd-data"></div>
+          <div class="field"><label for="upd-data">Data</label><input type="date" id="upd-data" required></div>
           <div class="field"><label for="upd-inicio">Hora de início</label><input type="time" id="upd-inicio" required></div>
           <div class="field"><label for="upd-fim">Hora de fim</label><input type="time" id="upd-fim" required></div>
           <div class="field">
@@ -165,7 +167,7 @@
       <!-- SIDEBAR -->
       <aside class="sidebar">
         <div class="brand-header">
-          <div class="stamp">CT</div>
+          <div class="stamp" aria-hidden="true">C<span class="mark-dot">.</span></div>
           <div>
             <h1>CENTRALIZAR</h1>
             <p>Módulo Operacional</p>
@@ -211,10 +213,11 @@
 
         <!-- VISÃO GERAL -->
         <div id="view-dashboard" class="view active">
+          <div class="wk-context"><span class="wk-context__flag">PROJETO INTEGRADOR • SENAI</span><strong>Registro organizado. Gestão com visibilidade.</strong><span>Uma solução acadêmica para centralizar atividades, responsáveis e horários no contexto da WK Soluções Industriais.</span></div>
           <div class="topbar">
             <div>
-              <h2>Painel de Controle</h2>
-              <p class="sub">Indicadores consolidados e métricas em tempo real.</p>
+              <h2>Visão geral das atividades</h2>
+              <p class="sub">Resumo dos registros compartilhados pela equipe.</p>
             </div>
           </div>
           <div class="stats-row">
@@ -225,7 +228,7 @@
           </div>
           <div class="panel">
             <h3>Atividades Recentes</h3>
-            <p class="panel-sub">Últimos registros submetidos no sistema.</p>
+            <p class="panel-sub">Atividades mais recentes registradas pela equipe.</p>
             <div style="overflow-x:auto;">
               <table id="recent-table">
                 <thead>
@@ -245,8 +248,8 @@
         <div id="view-protocolos" class="view">
           <div class="topbar">
             <div>
-              <h2>Gestão de Registros</h2>
-              <p class="sub">Consulte, filtre e gerencie o ciclo de vida dos processos.</p>
+              <h2>Registros funcionais</h2>
+              <p class="sub">Consulte as atividades por funcionário, setor e período.</p>
             </div>
           </div>
           <div class="panel">
@@ -287,7 +290,7 @@
           <div class="topbar">
             <div>
               <h2>Novo Registro de Atividade</h2>
-              <p class="sub">Preencha os campos para submeter um novo fluxo para análise.</p>
+              <p class="sub">Registre quem realizou a atividade, quando e em qual setor.</p>
             </div>
           </div>
           <div class="panel">
@@ -365,7 +368,7 @@
                 </div>
               </div>
               <div class="btn-row">
-                <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Submeter Registro</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">Salvar registro</button>
                 <button type="reset" class="btn-secondary">Limpar</button>
               </div>
             </form>
@@ -376,7 +379,7 @@
         <div id="view-relatorios" class="view">
           <div class="topbar">
             <div>
-              <h2>Relatórios Gerenciais</h2>
+              <h2>Relatórios de atividades</h2>
               <p class="sub">Consolidação das atividades registradas.</p>
             </div>
           </div>
