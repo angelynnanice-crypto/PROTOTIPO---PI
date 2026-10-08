@@ -10,7 +10,9 @@ const State = {
   user: { id: '', name: '', role: 'analista', email: '' },
   users: [],
   protocols: [],
-  dashboardPeriod: '30'
+  dashboardPeriod: '30',
+  dashboardSector: '',
+  dashboardPriority: ''
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -460,20 +462,38 @@ function initFilters() {
   });
   const exp = document.getElementById('rep-export');
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
-  const dashboardExp = document.getElementById('dashboard-export');
-  if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getRelatorio()));
-  const dashboardPeriod = document.getElementById('dashboard-period');
-  if (dashboardPeriod) dashboardPeriod.addEventListener('change', () => {
-    State.dashboardPeriod = dashboardPeriod.value;
+  // Todos os indicadores e graficos compartilham o recorte atual.
+  const refreshDashboard = () => {
     renderStats();
     renderOperationalPanels();
     renderCommandCenter();
+    renderRecentTable();
+  };
+  ['dashboard-export', 'dashboard-export-secondary'].forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.addEventListener('click', () => exportarCSV(getDashboardResumo()));
+  });
+  const period = document.getElementById('dashboard-period');
+  if (period) period.addEventListener('change', () => {
+    State.dashboardPeriod = period.value;
+    refreshDashboard();
+  });
+  const sector = document.getElementById('dashboard-sector');
+  if (sector) sector.addEventListener('change', () => {
+    State.dashboardSector = sector.value;
+    refreshDashboard();
+  });
+  const priority = document.getElementById('dashboard-priority');
+  if (priority) priority.addEventListener('change', () => {
+    State.dashboardPriority = priority.value;
+    refreshDashboard();
   });
 }
 
 /* ---------- Atualização das informações na tela ---------- */
 // Quando os dados mudam, atualizamos tabelas, indicadores e relatórios.
 function renderApp() {
+  renderDashboardFilters();
   renderStats();
   renderOperationalPanels();
   renderCommandCenter();
@@ -485,23 +505,68 @@ function renderApp() {
 }
 
 // Separamos o período atual e o anterior para que os indicadores tragam contexto.
+// Recorte real do painel: periodo, setor e prioridade.
 function getDashboardProtocols(previous = false) {
-  if (State.dashboardPeriod === 'all') return previous ? [] : State.protocols;
-  const days = Number(State.dashboardPeriod) || 30;
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
-  const currentStart = new Date(end);
-  currentStart.setDate(currentStart.getDate() - days + 1);
-  currentStart.setHours(0, 0, 0, 0);
-  const previousStart = new Date(currentStart);
-  previousStart.setDate(previousStart.getDate() - days);
-  const start = previous ? previousStart : currentStart;
-  const finish = previous ? new Date(currentStart.getTime() - 1) : end;
-  return State.protocols.filter(protocol => {
-    if (!protocol.data) return false;
-    const date = new Date(`${protocol.data}T00:00:00`);
-    return date >= start && date <= finish;
+  let periodList = [];
+  if (State.dashboardPeriod === 'all') {
+    periodList = previous ? [] : State.protocols;
+  } else {
+    const days = Number(State.dashboardPeriod) || 30;
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const currentStart = new Date(end);
+    currentStart.setDate(currentStart.getDate() - days + 1);
+    currentStart.setHours(0, 0, 0, 0);
+    const previousStart = new Date(currentStart);
+    previousStart.setDate(previousStart.getDate() - days);
+    const start = previous ? previousStart : currentStart;
+    const finish = previous ? new Date(currentStart.getTime() - 1) : end;
+    periodList = State.protocols.filter(p => {
+      if (!p.data) return false;
+      const date = new Date(p.data + 'T00:00:00');
+      return date >= start && date <= finish;
+    });
+  }
+  return periodList.filter(p =>
+    (!State.dashboardSector || p.setor === State.dashboardSector) &&
+    (!State.dashboardPriority || (p.priority || 'Normal') === State.dashboardPriority)
+  );
+}
+
+// Atualiza a lista de setores usando somente os registros existentes.
+function renderDashboardFilters() {
+  const select = document.getElementById('dashboard-sector');
+  if (!select) return;
+  const sectors = Array.from(new Set(State.protocols.map(p => p.setor).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  if (State.dashboardSector && !sectors.includes(State.dashboardSector)) {
+    State.dashboardSector = '';
+  }
+  select.innerHTML = '<option value="">Todos os setores</option>' +
+    sectors.map(sector => '<option value="' + escapeHTML(sector) + '">' + escapeHTML(sector) + '</option>').join('');
+  select.value = State.dashboardSector;
+}
+
+// O CSV do painel respeita os filtros. O relatorio tradicional permanece separado.
+function getDashboardResumo() {
+  const rows = new Map();
+  getDashboardProtocols().forEach(p => {
+    if (!p.funcionario) return;
+    const setor = p.setor || '—';
+    const key = JSON.stringify([p.funcionario, setor]);
+    const item = rows.get(key) || { funcionario: p.funcionario, setor, qtd: 0, min: 0 };
+    item.qtd += 1;
+    if (p.inicio && p.fim && minutos(p.fim) > minutos(p.inicio)) {
+      item.min += minutos(p.fim) - minutos(p.inicio);
+    }
+    rows.set(key, item);
   });
+  return Array.from(rows.values()).map(row => ({
+    funcionario: row.funcionario,
+    setor: row.setor,
+    qtd: row.qtd,
+    horas: (row.min / 60).toFixed(1)
+  }));
 }
 
 function trendText(current, previous) {
@@ -515,7 +580,7 @@ function renderCommandCenter() {
   const priority = document.getElementById('priority-chart');
   const people = document.getElementById('people-workload');
   const updated = document.getElementById('dashboard-updated');
-  if (!priority || !people || !updated) return;
+  if (!priority || !people) return; // O horário de atualização não é obrigatório.
   const protocols = getDashboardProtocols();
 
   const priorities = [
@@ -535,7 +600,7 @@ function renderCommandCenter() {
   const ranking = Object.entries(workload).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const peopleMax = Math.max(1, ...ranking.map(item => item[1]));
   people.innerHTML = ranking.length ? ranking.map(([name, count], index) => `<div class="person-row"><span class="person-avatar">${escapeHTML(name).charAt(0).toUpperCase()}</span><div><strong>${escapeHTML(name)}</strong><b><i style="width:${Math.round((count / peopleMax) * 100)}%"></i></b></div><em>${count}</em></div>`).join('') : estadoVazio('Ainda não há colaboradores neste período.');
-  updated.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (updated) updated.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // Transformamos os registros em um resumo visual sem criar dados fictícios.
@@ -607,14 +672,23 @@ function renderStats() {
   const current = getDashboardProtocols();
   const previous = getDashboardProtocols(true);
   const unique = (list, field) => new Set(list.map(p => p[field]).filter(Boolean)).size;
+  // So contabilizamos duracoes validas, com inicio anterior ao termino.
+  const hours = list => list.reduce((total, p) => {
+    const start = minutos(p.inicio);
+    const finish = minutos(p.fim);
+    return total + (p.inicio && p.fim && finish > start ? (finish - start) / 60 : 0);
+  }, 0);
   const values = {
     total: [current.length, previous.length],
+    horas: [hours(current), hours(previous)],
     func: [unique(current, 'funcionario'), unique(previous, 'funcionario')],
     setores: [unique(current, 'setor'), unique(previous, 'setor')],
     urgentes: [current.filter(p => p.priority === 'Urgente').length, previous.filter(p => p.priority === 'Urgente').length]
   };
   Object.entries(values).forEach(([key, [now, before]]) => {
-    document.getElementById(`stat-${key}`).textContent = now;
+    document.getElementById(`stat-${key}`).textContent = key === 'horas'
+      ? now.toLocaleString('pt-BR', {minimumFractionDigits:1,maximumFractionDigits:1}) + ' h'
+      : now;
     const trend = document.getElementById(`trend-${key}`);
     trend.textContent = State.dashboardPeriod === 'all' ? 'TOTAL' : trendText(now, before);
     trend.classList.toggle('negative', now < before);
@@ -624,7 +698,7 @@ function renderStats() {
 function renderRecentTable() {
   const tbody = document.querySelector('#recent-table tbody');
   tbody.innerHTML = '';
-  const recent = State.protocols.slice(0, 5);
+  const recent = getDashboardProtocols().slice(0, 5);
   if (recent.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>`;
     return;
