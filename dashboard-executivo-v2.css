@@ -236,3 +236,30 @@
   #view-dashboard .dashboard-filters label:first-child{min-width:100%}
 }
 @media(prefers-reduced-motion:reduce){#app .stat-card,#app .navlink{transition:none}}
+
+/* Ajuste fino: icone no canto superior; variacao numerica abaixo do indicador. */
+#view-dashboard .stat-card,#app[data-theme="light"] #view-dashboard .stat-card{
+  display:grid;grid-template-areas:"metric";grid-template-columns:minmax(0,1fr);
+  grid-template-rows:1fr;align-items:stretch;
+}
+#view-dashboard .stat-icon{
+  grid-area:metric;place-self:start end;align-self:start;justify-self:end;
+  margin:0;z-index:2;position:relative;
+}
+#view-dashboard .stat-content{grid-area:metric;min-height:103px;position:relative;z-index:1}
+#view-dashboard .stat-topline{display:block;min-height:37px;margin:0 43px 10px 0}
+#view-dashboard .stat-card .num{margin-top:2px}
+#view-dashboard .stat-topline .kpi-trend{
+  position:absolute;left:0;bottom:0;margin:0;
+  background:rgba(56,185,142,.10);border-color:rgba(56,185,142,.2);
+  padding:3px 7px;color:var(--ex-green);
+}
+#view-dashboard .stat-topline .kpi-trend.negative{color:var(--ex-red);background:rgba(250,114,126,.1);border-color:rgba(250,114,126,.18)}
+#view-dashboard .stat-card:has(.kpi-trend) .stat-content>small{display:none}
+#view-dashboard .stat-card:has(.kpi-trend) .num{margin-bottom:28px}
+#view-dashboard .stat-card:not(:has(.kpi-trend)) .stat-content>small{font-size:12px}
+@media(max-width:480px){
+  #view-dashboard .stat-content{min-height:109px}
+  #view-dashboard .stat-topline .label{font-size:12px}
+  #view-dashboard .stat-card .num{font-size:28px}
+}
