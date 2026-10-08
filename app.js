@@ -672,14 +672,23 @@ function renderStats() {
   const current = getDashboardProtocols();
   const previous = getDashboardProtocols(true);
   const unique = (list, field) => new Set(list.map(p => p[field]).filter(Boolean)).size;
+  // So contabilizamos duracoes validas, com inicio anterior ao termino.
+  const hours = list => list.reduce((total, p) => {
+    const start = minutos(p.inicio);
+    const finish = minutos(p.fim);
+    return total + (p.inicio && p.fim && finish > start ? (finish - start) / 60 : 0);
+  }, 0);
   const values = {
     total: [current.length, previous.length],
+    horas: [hours(current), hours(previous)],
     func: [unique(current, 'funcionario'), unique(previous, 'funcionario')],
     setores: [unique(current, 'setor'), unique(previous, 'setor')],
     urgentes: [current.filter(p => p.priority === 'Urgente').length, previous.filter(p => p.priority === 'Urgente').length]
   };
   Object.entries(values).forEach(([key, [now, before]]) => {
-    document.getElementById(`stat-${key}`).textContent = now;
+    document.getElementById(`stat-${key}`).textContent = key === 'horas'
+      ? now.toLocaleString('pt-BR', {minimumFractionDigits:1,maximumFractionDigits:1}) + ' h'
+      : now;
     const trend = document.getElementById(`trend-${key}`);
     trend.textContent = State.dashboardPeriod === 'all' ? 'TOTAL' : trendText(now, before);
     trend.classList.toggle('negative', now < before);
@@ -689,7 +698,7 @@ function renderStats() {
 function renderRecentTable() {
   const tbody = document.querySelector('#recent-table tbody');
   tbody.innerHTML = '';
-  const recent = State.protocols.slice(0, 5);
+  const recent = getDashboardProtocols().slice(0, 5);
   if (recent.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>`;
     return;
