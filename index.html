@@ -7,9 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=14">
-<!-- Estilo aprovado: alteracoes visuais, sem substituir as funcoes do app. -->
-<link rel="stylesheet" href="dashboard-executivo-v2.css?v=2">
+<link rel="stylesheet" href="visual-2026.css?v=15">
 </head>
 <body>
 
@@ -249,17 +247,11 @@
 </button>
         </nav>
         <div class="sidebar-foot">
-          <details class="account-menu">
-            <summary aria-label="Abrir preferências da conta">Conta e aparência</summary>
-            <div class="account-menu__panel">
-              <div class="account-menu__title">Aparência</div>
-              <button class="theme-toggle theme-toggle--sidebar" id="theme-toggle" data-theme-toggle type="button" aria-label="Alternar para o tema claro" title="Alternar tema">
+          <button class="theme-toggle theme-toggle--sidebar" id="theme-toggle" data-theme-toggle type="button" aria-label="Alternar para o tema claro" title="Alternar tema">
             <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
             <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
             <span class="theme-toggle__text">Tema claro</span>
           </button>
-            </div>
-          </details>
           <div class="role-badge" id="sidebar-role-label">Perfil: Analista</div>
           <div class="user-row">
             <span id="sidebar-user-name">Usuário</span>
@@ -273,44 +265,28 @@
 
         <!-- VISÃO GERAL -->
         <div id="view-dashboard" class="view active">
-          <!-- Cabeçalho compacto: o trabalho começa pelos números, sem bloco de apresentação. -->
-          <header class="dashboard-exec-header">
-            <h2>Visão geral</h2>
-            <div class="dashboard-exec-header__actions">
-              <button type="button" class="exec-btn" id="dashboard-export" aria-label="Exportar dados filtrados em CSV">⇩ Exportar CSV</button>
-              <button type="button" class="operational-cta" data-open-view="view-novo">＋ Nova atividade</button>
+          <header class="dashboard-toolbar">
+            <div class="dashboard-toolbar__title">
+              <span class="dashboard-eyebrow"><i></i> PAINEL OPERACIONAL</span>
+              <div><h2>Visão geral</h2><span class="dashboard-sync"><i></i> Atualizado <strong id="dashboard-updated">agora</strong></span></div>
+            </div>
+            <div class="dashboard-toolbar__actions">
+              <button type="button" class="dashboard-btn dashboard-btn--secondary" id="dashboard-export" aria-label="Exportar atividades em CSV">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Exportar
+              </button>
+              <button type="button" class="dashboard-btn dashboard-btn--primary" data-open-view="view-novo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nova atividade
+              </button>
+            </div>
+            <div class="dashboard-filters" aria-label="Filtros do painel">
+              <label>Período<select id="dashboard-period"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico</option></select></label>
+              <label>Setor<select id="dashboard-sector"><option value="all">Todos os setores</option></select></label>
+              <label>Prioridade<select id="dashboard-priority"><option value="all">Todas</option><option value="Urgente">Urgente</option><option value="Alta">Alta</option><option value="Normal">Normal</option><option value="Baixa">Baixa</option></select></label>
             </div>
           </header>
-          <span id="dashboard-updated" hidden aria-hidden="true"></span>
-          <!-- Os tres filtros afetam os indicadores e os graficos, mas nao alteram registros. -->
-          <section class="dashboard-filter-bar" aria-label="Filtros do dashboard">
-            <h3>Resumo operacional</h3>
-            <div class="dashboard-filters">
-              <label for="dashboard-period">Período
-                <select id="dashboard-period">
-                  <option value="7">Últimos 7 dias</option>
-                  <option value="30" selected>Últimos 30 dias</option>
-                  <option value="90">Últimos 90 dias</option>
-                  <option value="all">Todo o histórico</option>
-                </select>
-              </label>
-              <label for="dashboard-sector">Setor
-                <select id="dashboard-sector"><option value="">Todos os setores</option></select>
-              </label>
-              <label for="dashboard-priority">Prioridade
-                <select id="dashboard-priority">
-                  <option value="">Todas</option>
-                  <option>Urgente</option>
-                  <option>Alta</option>
-                  <option>Normal</option>
-                  <option>Baixa</option>
-                </select>
-              </label>
-            </div>
-          </section>
-          <div class="stats-row">
+          <div class="stats-row kpi-grid">
             <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Atividades</span><span class="kpi-trend" id="trend-total">—</span></div><div class="num" id="stat-total">0</div><small>No período selecionado</small></div></div>
-                        <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Horas</span><span class="kpi-trend" id="trend-horas">—</span></div><div class="num" id="stat-horas">0 h</div><small>Horas registradas no período</small></div></div>
+            <div class="stat-card"><div class="stat-icon stat-icon--cyan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Horas</span><span class="kpi-trend" id="trend-hours">—</span></div><div class="num" id="stat-hours">0h</div><small>Tempo registrado</small></div></div>
             <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Colaboradores</span><span class="kpi-trend" id="trend-func">—</span></div><div class="num" id="stat-func">0</div><small>Com atividade registrada</small></div></div>
             <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Setores</span><span class="kpi-trend" id="trend-setores">—</span></div><div class="num" id="stat-setores">0</div><small>Áreas movimentadas</small></div></div>
             <div class="stat-card stat-card--alert"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Urgentes</span><span class="kpi-trend" id="trend-urgentes">—</span></div><div class="num" id="stat-urgentes">0</div><small>Exigem atenção imediata</small></div></div>
@@ -613,6 +589,6 @@
 
   <!-- SCRIPT -->
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
