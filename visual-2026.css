@@ -50,3 +50,72 @@
 @media(max-width:800px){.stats-row{grid-template-columns:1fr 1fr}.stat-card{min-height:105px;gap:12px;padding:16px}.stat-icon{width:40px;height:40px;flex-basis:40px}.stat-icon svg{width:20px;height:20px}.stat-card .num{font-size:30px}.stat-card .label{font-size:11px}.dashboard-grid{display:block}.chart-panel,.attention-panel{margin-bottom:12px}.weekly-chart{gap:7px;height:200px}.week-column small{font-size:11px}.donut-layout{grid-template-columns:140px 1fr}.donut-chart{width:140px}.quick-actions{grid-template-columns:1fr 1fr}.quick-actions button{min-height:70px}.quick-actions small{font-size:11px}}
 @media(max-width:480px){.stats-row{grid-template-columns:1fr}.stat-card{min-height:90px}.donut-layout{grid-template-columns:1fr}.donut-chart{margin:auto}.quick-actions{grid-template-columns:1fr}.weekly-chart{gap:4px}.week-bar i{width:65%}.attention-list article{grid-template-columns:10px 1fr}.attention-list em{grid-column:2}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ---------- CENTRALIZAR | Workspace premium ---------- */
+/* O painel interno combina leitura confortável com profundidade visual controlada. */
+#app{font-family:'Inter',Arial,sans-serif;background:#07101d}
+#app .shell{background:radial-gradient(circle at 78% 0,rgba(57,126,199,.2),transparent 31%),radial-gradient(circle at 18% 100%,rgba(30,94,157,.15),transparent 36%),linear-gradient(145deg,#07111f,#0b1829 56%,#08131f);color:#dce7f3}
+#app .main{position:relative;background:transparent;color:#dce7f3;font-size:15px}
+#app .main::before{content:"";position:fixed;right:-140px;top:90px;width:420px;height:420px;border-radius:50%;background:rgba(54,133,214,.09);filter:blur(90px);pointer-events:none}
+#app .sidebar{background:linear-gradient(180deg,rgba(9,22,37,.98),rgba(6,17,29,.96));border-right:1px solid rgba(133,178,220,.16);box-shadow:18px 0 50px rgba(0,0,0,.22);backdrop-filter:blur(20px)}
+#app .sidebar .brand-header{border-bottom-color:rgba(156,190,222,.13)}
+#app .sidebar .brand-header h1{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;letter-spacing:.09em;color:#f4f8fc}
+#app .sidebar .brand-header p{color:#7890a8;font-size:11px}
+#app .sidebar .stamp{background:linear-gradient(145deg,#337fc4,#153f6c);border:1px solid rgba(139,198,250,.4);border-radius:11px;box-shadow:0 9px 25px rgba(21,91,156,.32);color:#fff}
+#app .navlink{min-height:46px;padding:12px 13px;border:1px solid transparent;border-radius:9px;color:#91a5ba;font-size:14px;font-weight:600;letter-spacing:.01em}
+#app .navlink:hover{background:rgba(63,124,181,.1);border-color:rgba(112,170,222,.1);color:#dbe9f7}
+#app .navlink.active{background:linear-gradient(135deg,rgba(49,126,195,.3),rgba(35,89,143,.18));border-color:rgba(100,174,239,.24);box-shadow:inset 0 1px rgba(255,255,255,.05),0 9px 24px rgba(0,0,0,.15);color:#fff}
+#app .navlink.active::before{background:#63b7ff;box-shadow:0 0 13px rgba(99,183,255,.72)}
+#app .sidebar-foot{border-top-color:rgba(156,190,222,.12);color:#74899f}
+#app .wk-context{position:relative;overflow:hidden;padding:28px 30px;border:1px solid rgba(105,174,235,.23);border-radius:16px;background:linear-gradient(120deg,rgba(21,58,92,.91),rgba(12,33,56,.91));box-shadow:0 22px 48px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.05)}
+#app .wk-context::after{content:"";position:absolute;right:-55px;top:-90px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(74,167,244,.2),transparent 68%);pointer-events:none}
+#app .wk-context strong{font-family:'Inter',sans-serif;font-size:27px;line-height:1.15;color:#fff;letter-spacing:-.035em}
+#app .wk-context>span{color:#a8bad0;font-size:14px;line-height:1.65}
+#app .wk-context__flag,.panel-index{color:#72b9f5!important;font-size:11px!important;font-weight:700;letter-spacing:.14em}
+#app .wk-context__status{color:#b7c9da;font-size:11px}.wk-context__status i{background:#52d494;box-shadow:0 0 10px rgba(82,212,148,.8)}
+#app .operational-cta{border:1px solid rgba(127,195,252,.4);border-radius:8px;background:linear-gradient(135deg,#3587ce,#2265a3);box-shadow:0 10px 24px rgba(17,79,136,.34);font-family:'Inter',sans-serif;font-size:12px;font-weight:700}
+#app .operational-cta:hover{background:linear-gradient(135deg,#4599df,#2874b7);box-shadow:0 12px 30px rgba(34,116,183,.42)}
+#app .topbar h2{font-family:'Inter',sans-serif;font-size:34px;font-weight:750;letter-spacing:-.04em;color:#f7f9fc}
+#app .topbar .sub{margin-top:7px;color:#9caec1;font-size:15px;line-height:1.55}
+#app .panel{border:1px solid rgba(126,166,203,.17);border-radius:15px;background:linear-gradient(145deg,rgba(17,37,60,.94),rgba(10,26,44,.94));box-shadow:0 17px 38px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(15px)}
+#app .panel h3,#app .panel-heading h3{font-family:'Inter',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.025em;color:#f2f6fa}
+#app .panel-sub{color:#91a5b9;font-size:14px}
+#app .panel-live,#app .panel-code{color:#8fa6bc;font-size:11px}
+#app .panel-live i{background:#4fd29a;box-shadow:0 0 9px rgba(79,210,154,.7)}
+#app .stat-card{min-height:130px;padding:23px;border:1px solid rgba(129,171,210,.17);border-radius:15px;background:linear-gradient(145deg,rgba(19,44,70,.96),rgba(11,28,47,.96));box-shadow:0 15px 33px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.04);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+#app .stat-card:hover{transform:translateY(-3px);border-color:rgba(102,178,242,.35);box-shadow:0 20px 42px rgba(0,0,0,.27),0 0 25px rgba(50,132,202,.08)}
+#app .stat-icon{width:52px;height:52px;flex-basis:52px;border:1px solid rgba(104,181,246,.25);border-radius:13px;background:linear-gradient(145deg,rgba(51,131,201,.24),rgba(31,82,132,.18));box-shadow:inset 0 1px rgba(255,255,255,.06);color:#74bfff}
+#app .stat-card--alert .stat-icon{border-color:rgba(235,119,94,.25);background:rgba(192,74,54,.17);color:#ff947e}
+#app .stat-card .num{font-family:'Inter',sans-serif;font-size:42px;font-weight:750;line-height:1;color:#fff;letter-spacing:-.055em}
+#app .stat-card .label{margin-top:8px;color:#aabbd0;font-size:13px;font-weight:600;line-height:1.35;letter-spacing:0}
+#app .weekly-chart{border-bottom-color:#31455a;background:repeating-linear-gradient(to top,transparent 0 53px,rgba(135,172,205,.09) 53px 54px)}
+#app .week-column strong{font-family:'Inter',sans-serif;color:#dbe8f5;font-size:14px}
+#app .week-column small{color:#91a6bb;font-size:12px}
+#app .week-bar i{background:linear-gradient(180deg,#61b8f8,#2574bc);box-shadow:0 5px 18px rgba(54,150,226,.33),0 0 12px rgba(73,174,246,.16);border-radius:5px 5px 1px 1px}
+#app .donut-chart{filter:drop-shadow(0 12px 22px rgba(0,0,0,.25))}
+#app .donut-chart::after{background:#0e2238;box-shadow:inset 0 0 18px rgba(0,0,0,.22)}
+#app .donut-chart strong{color:#fff;font-size:31px}#app .donut-chart span{color:#91a8be}
+#app .donut-legend div{border-bottom-color:rgba(134,170,202,.12);color:#b7c6d5;font-size:13px}#app .donut-legend strong{color:#eef4f9}
+#app .sector-bars>div{color:#b8c8d7;font-size:13px}#app .sector-bars b{color:#eff5fa}
+#app .sector-track{height:10px;background:#172e47;border:1px solid rgba(111,158,198,.12)}
+#app .sector-track i{background:linear-gradient(90deg,#2b72b1,#58b4f2);box-shadow:0 0 14px rgba(64,159,226,.22)}
+#app .attention-list article{border:1px solid rgba(135,170,201,.14);border-radius:10px;background:rgba(7,21,36,.48)}
+#app .attention-list strong{color:#edf4fa;font-size:14px}#app .attention-list span{color:#93a8bc;font-size:12px}#app .attention-list em{font-size:11px}
+#app .empty-chart{border-color:rgba(130,169,203,.17);background:rgba(6,20,34,.35);color:#8297ab}
+#app .quick-actions{gap:13px}
+#app .quick-actions button{min-height:84px;padding:17px;border:1px solid rgba(125,170,210,.18);border-radius:12px;background:linear-gradient(145deg,rgba(18,41,66,.96),rgba(10,27,46,.96));box-shadow:0 12px 27px rgba(0,0,0,.16);color:#6fbbfa}
+#app .quick-actions button:hover{border-color:rgba(96,179,249,.4);background:linear-gradient(145deg,rgba(26,59,91,.98),rgba(13,36,59,.98));box-shadow:0 15px 32px rgba(0,0,0,.24),0 0 20px rgba(64,151,221,.08);transform:translateY(-2px)}
+#app .quick-actions strong{color:#eef5fb;font-size:14px}#app .quick-actions small{color:#8fa4b9;font-size:12px}
+#app table{overflow:hidden;border:1px solid rgba(131,169,202,.16);border-radius:10px;background:rgba(7,20,34,.72)}
+#app th{padding:15px 13px;background:#132b45;border-bottom-color:#29435d;color:#a9bdd1;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:.05em}
+#app td{padding:15px 13px;border-bottom-color:rgba(124,160,191,.12);color:#d7e3ee;font-size:14px;line-height:1.45}
+#app tbody tr:hover{background:rgba(40,91,138,.2)}
+#app .recent-main strong{color:#f0f5fa;font-size:14px}#app .recent-main span,#app .recent-person span{color:#899eb3;font-size:12px}#app .recent-person strong{color:#d7e3ee}
+#app input,#app select,#app textarea{border-color:#29435d;background:#0b1d31;color:#f0f5fa;font-family:'Inter',sans-serif;font-size:15px}
+#app input::placeholder,#app textarea::placeholder{color:#6f849a}
+#app input:focus,#app select:focus,#app textarea:focus{border-color:#4c96d5;box-shadow:0 0 0 3px rgba(70,151,217,.13)}
+#app .field label{color:#b7c7d6;font-family:'Inter',sans-serif;font-size:13px;font-weight:600}
+#app .btn-secondary{border-color:#31506d;background:#102943;color:#dbe8f4}
+#app .report-summary>div{border-color:rgba(127,169,205,.18)!important;background:linear-gradient(145deg,rgba(18,42,67,.97),rgba(10,27,46,.97))!important;color:#eef5fb!important}
+
+@media(max-width:800px){#app .main{font-size:15px}#app .topbar h2{font-size:28px}#app .wk-context strong{font-size:24px}#app .panel{border-radius:12px}#app .stat-card .num{font-size:36px}#app .stat-card .label{font-size:13px}}
