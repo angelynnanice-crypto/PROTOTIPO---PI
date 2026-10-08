@@ -462,14 +462,31 @@ function initFilters() {
   });
   const exp = document.getElementById('rep-export');
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
-  const dashboardExp = document.getElementById('dashboard-export');
-  if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getRelatorio()));
-  const dashboardPeriod = document.getElementById('dashboard-period');
-  if (dashboardPeriod) dashboardPeriod.addEventListener('change', () => {
-    State.dashboardPeriod = dashboardPeriod.value;
+  // Todos os indicadores e graficos compartilham o recorte atual.
+  const refreshDashboard = () => {
     renderStats();
     renderOperationalPanels();
     renderCommandCenter();
+    renderRecentTable();
+  };
+  ['dashboard-export', 'dashboard-export-secondary'].forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.addEventListener('click', () => exportarCSV(getDashboardResumo()));
+  });
+  const period = document.getElementById('dashboard-period');
+  if (period) period.addEventListener('change', () => {
+    State.dashboardPeriod = period.value;
+    refreshDashboard();
+  });
+  const sector = document.getElementById('dashboard-sector');
+  if (sector) sector.addEventListener('change', () => {
+    State.dashboardSector = sector.value;
+    refreshDashboard();
+  });
+  const priority = document.getElementById('dashboard-priority');
+  if (priority) priority.addEventListener('change', () => {
+    State.dashboardPriority = priority.value;
+    refreshDashboard();
   });
 }
 
