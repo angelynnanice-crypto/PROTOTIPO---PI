@@ -33,7 +33,7 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /src="app\.js\?v=11"/);
+  assert.match(html, /src="app\.js\?v=13"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -57,6 +57,36 @@ teste('transforma a barra lateral em gaveta no celular', () => {
   assert.match(css, /\.mobile-topbar/);
   assert.match(css, /\.mobile-menu-toggle/);
   assert.match(css, /@media\(max-width:800px\)[\s\S]*\.sidebar[\s\S]*translateX/);
+});
+
+teste('organiza o dashboard como uma central de comando', () => {
+  assert.match(html, /class="command-header"/);
+  assert.match(html, /id="dashboard-period"/);
+  assert.match(html, /id="dashboard-updated"/);
+});
+
+teste('mostra comparação nos quatro indicadores principais', () => {
+  ['trend-total', 'trend-func', 'trend-setores', 'trend-urgentes'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"`));
+  });
+});
+
+teste('inclui gráficos de prioridade e carga por colaborador', () => {
+  assert.match(html, /id="priority-chart"/);
+  assert.match(html, /id="people-workload"/);
+});
+
+teste('filtra os indicadores pelo período escolhido', () => {
+  assert.match(js, /dashboardPeriod/);
+  assert.match(js, /getDashboardProtocols/);
+  assert.match(js, /renderCommandCenter/);
+});
+
+teste('possui acabamento específico do command center', () => {
+  assert.match(css, /\.command-header/);
+  assert.match(css, /\.kpi-trend/);
+  assert.match(css, /\.priority-chart/);
+  assert.match(css, /\.people-workload/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
