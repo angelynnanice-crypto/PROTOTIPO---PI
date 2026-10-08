@@ -398,6 +398,8 @@ function initFilters() {
   });
   const exp = document.getElementById('rep-export');
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
+  const dashboardExp = document.getElementById('dashboard-export');
+  if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getRelatorio()));
 }
 
 /* ---------- Atualização das informações na tela ---------- */
@@ -414,28 +416,59 @@ function renderApp() {
 
 // Transformamos os registros em um resumo visual sem criar dados fictícios.
 function renderOperationalPanels() {
-  const bars = document.getElementById('activity-bars');
-  const matrix = document.getElementById('priority-matrix');
-  if (!bars || !matrix) return;
+  const weekly = document.getElementById('weekly-chart');
+  const donut = document.getElementById('type-donut');
+  const legend = document.getElementById('donut-legend');
+  const sectors = document.getElementById('sector-hours');
+  const attention = document.getElementById('attention-list');
+  if (!weekly || !donut || !legend || !sectors || !attention) return;
 
-  const tipos = ['Substituição temporária', 'Cobertura de horário', 'Apoio operacional', 'Atividade extraordinária'];
-  const maiorTipo = Math.max(1, ...tipos.map(tipo => State.protocols.filter(p => p.tipo === tipo).length));
-  bars.innerHTML = tipos.map((tipo, indice) => {
-    const quantidade = State.protocols.filter(p => p.tipo === tipo).length;
-    const percentual = Math.round((quantidade / maiorTipo) * 100);
-    return `<div class="activity-bar"><span class="activity-bar__index">0${indice + 1}</span><span class="activity-bar__name">${tipo}</span><span class="activity-bar__track"><i style="width:${percentual}%"></i></span><strong>${quantidade}</strong></div>`;
-  }).join('');
+  // Montamos as sete colunas usando a data de cada registro.
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const dias = Array.from({ length: 7 }, (_, indice) => {
+    const data = new Date(hoje);
+    data.setDate(hoje.getDate() - (6 - indice));
+    const iso = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+    return { iso, rotulo: data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), quantidade: State.protocols.filter(p => p.data === iso).length };
+  });
+  const maiorDia = Math.max(1, ...dias.map(d => d.quantidade));
+  weekly.innerHTML = dias.map(d => `<div class="week-column"><strong>${d.quantidade}</strong><span class="week-bar"><i style="height:${Math.max(6, Math.round((d.quantidade / maiorDia) * 100))}%"></i></span><small>${d.rotulo}</small></div>`).join('');
 
-  const prioridades = [
-    { nome: 'Urgente', classe: 'critical' },
-    { nome: 'Alta', classe: 'high' },
-    { nome: 'Normal', classe: 'normal' },
-    { nome: 'Baixa', classe: 'low' }
-  ];
-  matrix.innerHTML = prioridades.map(item => {
-    const quantidade = State.protocols.filter(p => p.priority === item.nome).length;
-    return `<div class="priority-cell ${item.classe}"><span>${item.nome}</span><strong>${quantidade}</strong><small>REGISTROS</small></div>`;
-  }).join('');
+  // O gráfico de rosca usa uma cor para cada tipo de atividade.
+  const tipos = [
+    { nome: 'Substituição', valor: 'Substituição temporária', cor: '#245f9f' },
+    { nome: 'Cobertura', valor: 'Cobertura de horário', cor: '#45a0d8' },
+    { nome: 'Apoio', valor: 'Apoio operacional', cor: '#39a675' },
+    { nome: 'Extraordinária', valor: 'Atividade extraordinária', cor: '#d08a32' }
+  ].map(item => ({ ...item, quantidade: State.protocols.filter(p => p.tipo === item.valor).length }));
+  const total = Math.max(1, State.protocols.length);
+  let acumulado = 0;
+  const partes = tipos.map(item => {
+    const inicio = acumulado;
+    acumulado += (item.quantidade / total) * 100;
+    return `${item.cor} ${inicio}% ${acumulado}%`;
+  });
+  donut.style.setProperty('--donut', State.protocols.length ? `conic-gradient(${partes.join(',')})` : 'conic-gradient(#dfe5ec 0 100%)');
+  document.getElementById('donut-total').textContent = State.protocols.length;
+  legend.innerHTML = tipos.map(item => `<div><i style="background:${item.cor}"></i><span>${item.nome}</span><strong>${item.quantidade}</strong></div>`).join('');
+
+  // Somamos as horas válidas e mostramos os cinco setores com maior carga.
+  const mapaSetores = {};
+  State.protocols.forEach(p => {
+    if (!p.setor || !p.inicio || !p.fim || minutos(p.fim) <= minutos(p.inicio)) return;
+    mapaSetores[p.setor] = (mapaSetores[p.setor] || 0) + minutos(p.fim) - minutos(p.inicio);
+  });
+  const listaSetores = Object.entries(mapaSetores).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maiorSetor = Math.max(1, ...listaSetores.map(item => item[1]));
+  sectors.innerHTML = listaSetores.length ? listaSetores.map(([nome, min]) => `<div class="sector-bar"><div><span>${escapeHTML(nome)}</span><strong>${(min / 60).toFixed(1).replace('.', ',')} h</strong></div><i><b style="width:${Math.round((min / maiorSetor) * 100)}%"></b></i></div>`).join('') : estadoVazio('Ainda não há horas válidas para comparar os setores.');
+
+  const criticos = State.protocols.filter(p => p.priority === 'Urgente' || p.priority === 'Alta').slice(0, 4);
+  attention.innerHTML = criticos.length ? criticos.map(p => `<article><span class="attention-dot ${p.priority === 'Urgente' ? 'urgent' : 'high'}"></span><div><strong>${escapeHTML(p.title)}</strong><small>${escapeHTML(p.funcionario || 'Sem responsável')} • ${formatarData(p.data)}</small></div><em>${p.priority}</em></article>`).join('') : estadoVazio('Nenhuma atividade urgente ou de alta prioridade.');
+}
+
+function estadoVazio(mensagem) {
+  return `<div class="chart-empty"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg><span>${mensagem}</span></div>`;
 }
 
 function formatarData(iso) {
@@ -458,15 +491,17 @@ function renderRecentTable() {
   tbody.innerHTML = '';
   const recent = State.protocols.slice(0, 5);
   if (recent.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" class="empty">Nenhum registro encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>`;
     return;
   }
   recent.forEach(p => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="protocolo">${escapeHTML(p.id)}</span></td>
-      <td><strong>${escapeHTML(p.title)}</strong></td>
-      <td>${escapeHTML(p.funcionario || p.author)}</td>
+      <td><strong>${escapeHTML(p.title)}</strong><br><small>${escapeHTML(p.tipo || '—')}</small></td>
+      <td>${escapeHTML(p.funcionario || p.author)}<br><small>${escapeHTML(p.setor || 'Sem setor')}</small></td>
+      <td>${formatarData(p.data)}<br><small>${escapeHTML(p.inicio || '—')}${p.fim ? '–' + escapeHTML(p.fim) : ''}</small></td>
+      <td><span class="priority-badge priority-${String(p.priority || '').toLowerCase()}">${escapeHTML(p.priority || 'Normal')}</span></td>
     `;
     tbody.appendChild(tr);
   });
