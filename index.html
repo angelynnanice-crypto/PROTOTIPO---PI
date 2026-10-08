@@ -281,6 +281,7 @@
               <button type="button" class="operational-cta" data-open-view="view-novo">＋ Nova atividade</button>
             </div>
           </header>
+          <span id="dashboard-updated" hidden aria-hidden="true"></span>
           <!-- Os tres filtros afetam os indicadores e os graficos, mas nao alteram registros. -->
           <section class="dashboard-filter-bar" aria-label="Filtros do dashboard">
             <h3>Resumo operacional</h3>
@@ -349,12 +350,6 @@
               <div class="people-workload" id="people-workload"></div>
             </section>
           </div>
-          <section class="quick-actions" aria-label="Ações rápidas">
-            <button type="button" data-open-view="view-novo"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span><strong>Novo registro</strong><small>Cadastrar uma atividade</small></span></button>
-            <button type="button" data-open-view="view-protocolos"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"/></svg><span><strong>Consultar</strong><small>Localizar atividades</small></span></button>
-            <button type="button" data-open-view="view-relatorios"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span><strong>Relatórios</strong><small>Analisar os resultados</small></span></button>
-            <button type="button" id="dashboard-export-secondary"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg><span><strong>Exportar CSV</strong><small>Abrir os dados no Excel</small></span></button>
-          </section>
           <div class="panel">
             <div class="panel-heading"><div><span class="panel-index">07 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
             <p class="panel-sub">Atividades mais recentes registradas pela equipe.</p>
