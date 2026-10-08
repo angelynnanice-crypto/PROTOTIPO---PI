@@ -580,7 +580,7 @@ function renderCommandCenter() {
   const priority = document.getElementById('priority-chart');
   const people = document.getElementById('people-workload');
   const updated = document.getElementById('dashboard-updated');
-  if (!priority || !people || !updated) return;
+  if (!priority || !people) return; // O horário de atualização não é obrigatório.
   const protocols = getDashboardProtocols();
 
   const priorities = [
@@ -600,7 +600,7 @@ function renderCommandCenter() {
   const ranking = Object.entries(workload).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const peopleMax = Math.max(1, ...ranking.map(item => item[1]));
   people.innerHTML = ranking.length ? ranking.map(([name, count], index) => `<div class="person-row"><span class="person-avatar">${escapeHTML(name).charAt(0).toUpperCase()}</span><div><strong>${escapeHTML(name)}</strong><b><i style="width:${Math.round((count / peopleMax) * 100)}%"></i></b></div><em>${count}</em></div>`).join('') : estadoVazio('Ainda não há colaboradores neste período.');
-  updated.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (updated) updated.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // Transformamos os registros em um resumo visual sem criar dados fictícios.
