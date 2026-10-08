@@ -123,9 +123,10 @@
 @media(max-width:800px){#app .main{font-size:15px}#app .topbar h2{font-size:28px}#app .wk-context strong{font-size:24px}#app .panel{border-radius:12px}#app .stat-card .num{font-size:36px}#app .stat-card .label{font-size:13px}}
 
 /* ---------- Temas e navegação responsiva ---------- */
-.theme-toggle{position:fixed;z-index:1200;right:22px;top:18px;display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:0 13px;border:1px solid rgba(126,178,224,.25);border-radius:11px;background:rgba(10,27,45,.88);box-shadow:0 10px 26px rgba(0,0,0,.2);backdrop-filter:blur(16px);color:#c9d9e8;cursor:pointer}
+.theme-toggle{display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:0 13px;border:1px solid rgba(126,178,224,.22);border-radius:10px;background:rgba(30,66,99,.28);color:#a9bdd0;cursor:pointer}
 .theme-toggle:hover{border-color:rgba(108,187,251,.5);background:#133354;color:#fff}.theme-toggle:focus-visible,.mobile-menu-toggle:focus-visible,.mobile-menu-close:focus-visible{outline:3px solid rgba(85,166,235,.35);outline-offset:3px}
 .theme-toggle__text{font:600 12px 'Inter',sans-serif}.theme-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.theme-icon--moon{display:none}
+.theme-toggle--sidebar{width:100%;margin-bottom:17px}.theme-toggle--mobile{display:none}
 html[data-theme="light"] .theme-icon--sun{display:none}html[data-theme="light"] .theme-icon--moon{display:block}
 .mobile-topbar,.mobile-menu-backdrop,.mobile-menu-close{display:none}
 
@@ -168,7 +169,7 @@ html[data-theme="light"] body{background:#e9eef4;color:#1a2b3d}
 #app[data-theme="light"] .report-summary>div{border-color:#d7e1ea!important;background:linear-gradient(145deg,#fff,#f3f7fa)!important;color:#213c54!important}
 #app[data-theme="light"] .upd-settings{border-color:#d6e1ea!important;background:#f3f7fa!important}
 #app[data-theme="light"] .protocolo{background:#e8f1fa;color:#225f95}
-html[data-theme="light"] .theme-toggle{border-color:#cbd8e3;background:rgba(255,255,255,.92);box-shadow:0 10px 25px rgba(40,66,89,.12);color:#315b7d}
+html[data-theme="light"] .theme-toggle{border-color:#d0dce6;background:#edf4f9;color:#315b7d}
 html[data-theme="light"] .theme-toggle:hover{border-color:#9dc4e3;background:#f4f9fd;color:#154f7e}
 
 /* Login e janelas seguem a mesma escolha, evitando uma troca de tema incompleta. */
@@ -190,8 +191,8 @@ html[data-theme="dark"] .modal-card .upd-settings{border-color:#2b4863!important
 /* No celular a lateral vira uma gaveta acessível e o conteúdo ganha uma barra própria. */
 @media(max-width:800px){
   body.mobile-menu-active{overflow:hidden}
-  .theme-toggle{top:9px;right:10px;width:42px;min-height:42px;padding:0}.theme-toggle__text{display:none}
-  .mobile-topbar{position:sticky;z-index:850;top:0;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 64px 0 12px;border-bottom:1px solid rgba(130,174,213,.17);background:rgba(8,23,39,.94);box-shadow:0 8px 25px rgba(0,0,0,.2);backdrop-filter:blur(18px)}
+  .theme-toggle--sidebar{display:none}.theme-toggle--mobile{display:flex;width:42px;min-height:42px;padding:0}.theme-toggle__text{display:none}
+  .mobile-topbar{position:sticky;z-index:850;top:0;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 10px 0 12px;border-bottom:1px solid rgba(130,174,213,.17);background:rgba(8,23,39,.94);box-shadow:0 8px 25px rgba(0,0,0,.2);backdrop-filter:blur(18px)}
   .mobile-menu-toggle{display:grid;width:42px;height:42px;padding:10px;border:1px solid rgba(131,180,223,.22);border-radius:10px;background:rgba(26,60,91,.55);cursor:pointer;place-content:center;gap:5px}
   .mobile-menu-toggle span{display:block;width:19px;height:2px;border-radius:2px;background:#d9e9f7;transition:transform .2s ease,opacity .2s ease}
   .mobile-brand{display:flex;align-items:center;gap:9px;color:#eef6fc}.mobile-brand>span{display:grid;width:29px;height:29px;border-radius:8px;background:linear-gradient(145deg,#337fc4,#153f6c);place-items:center;font-size:14px;font-weight:800}.mobile-brand strong{font-size:13px;letter-spacing:.09em}
