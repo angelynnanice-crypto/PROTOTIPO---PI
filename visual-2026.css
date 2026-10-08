@@ -53,7 +53,9 @@
 
 /* ---------- CENTRALIZAR | Workspace premium ---------- */
 /* O painel interno combina leitura confortável com profundidade visual controlada. */
-#app{font-family:'Inter',Arial,sans-serif;background:#07101d}
+#app,#app *{font-family:'Inter',Arial,sans-serif}
+#app{background:#07101d}
+#app .protocolo,#app .panel-index,#app .panel-live,#app .panel-code{font-family:'Roboto Condensed',sans-serif}
 #app .shell{background:radial-gradient(circle at 78% 0,rgba(57,126,199,.2),transparent 31%),radial-gradient(circle at 18% 100%,rgba(30,94,157,.15),transparent 36%),linear-gradient(145deg,#07111f,#0b1829 56%,#08131f);color:#dce7f3}
 #app .main{position:relative;background:transparent;color:#dce7f3;font-size:15px}
 #app .main::before{content:"";position:fixed;right:-140px;top:90px;width:420px;height:420px;border-radius:50%;background:rgba(54,133,214,.09);filter:blur(90px);pointer-events:none}
