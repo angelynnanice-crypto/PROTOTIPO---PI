@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=4">
+<link rel="stylesheet" href="visual-2026.css?v=5">
 </head>
 <body>
 
@@ -257,7 +257,10 @@
           <div class="wk-context">
             <div><span class="wk-context__flag">CENTRAL OPERACIONAL • VISÃO GERAL</span><strong>Registro organizado.<br>Gestão com visibilidade.</strong></div>
             <span>Atividades, responsáveis e horários reunidos para apoiar a rotina administrativa da WK Soluções Industriais.</span>
-            <div class="wk-context__status"><i></i> SISTEMA OPERACIONAL</div>
+            <div class="wk-context__actions">
+              <div class="wk-context__status"><i></i> SISTEMA OPERACIONAL</div>
+              <button type="button" class="operational-cta" data-open-view="view-novo">+ REGISTRAR ATIVIDADE</button>
+            </div>
           </div>
           <div class="topbar">
             <div>
@@ -271,8 +274,23 @@
             <div class="stat-card"><div class="num" id="stat-setores">0</div><div class="label">Setores</div></div>
             <div class="stat-card"><div class="num" id="stat-urgentes">0</div><div class="label">Urgentes</div></div>
           </div>
+          <div class="operations-grid">
+            <section class="panel operations-panel">
+              <div class="panel-heading">
+                <div><span class="panel-index">01 • DISTRIBUIÇÃO</span><h3>Atividades por tipo</h3></div>
+                <span class="panel-live"><i></i> DADOS ATUAIS</span>
+              </div>
+              <div class="activity-bars" id="activity-bars"></div>
+            </section>
+            <section class="panel operations-panel">
+              <div class="panel-heading">
+                <div><span class="panel-index">02 • PRIORIDADE</span><h3>Situação operacional</h3></div>
+              </div>
+              <div class="priority-matrix" id="priority-matrix"></div>
+            </section>
+          </div>
           <div class="panel">
-            <h3>Atividades Recentes</h3>
+            <div class="panel-heading"><div><span class="panel-index">03 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
             <p class="panel-sub">Atividades mais recentes registradas pela equipe.</p>
             <div style="overflow-x:auto;">
               <table id="recent-table">
