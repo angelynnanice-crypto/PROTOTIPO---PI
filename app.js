@@ -10,7 +10,9 @@ const State = {
   user: { id: '', name: '', role: 'analista', email: '' },
   users: [],
   protocols: [],
-  dashboardPeriod: '30'
+  dashboardPeriod: '30',
+  dashboardSector: '',
+  dashboardPriority: ''
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -474,6 +476,7 @@ function initFilters() {
 /* ---------- Atualização das informações na tela ---------- */
 // Quando os dados mudam, atualizamos tabelas, indicadores e relatórios.
 function renderApp() {
+  renderDashboardFilters();
   renderStats();
   renderOperationalPanels();
   renderCommandCenter();
