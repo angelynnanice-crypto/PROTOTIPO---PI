@@ -13,13 +13,65 @@ const State = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  [initCinematicIntro, initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters, initUsers]
+  [initCinematicIntro, initTheme, initMobileMenu, initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters, initUsers]
     .forEach(fn => {
       try { fn(); } catch (e) { console.error('Erro em ' + fn.name + ':', e); }
     });
   const { data } = await sb.auth.getSession();
   if (data.session) await entrar(data.session.user);
 });
+
+/* ---------- Tema e navegação no celular ---------- */
+// A preferência fica salva neste navegador para manter a escolha no próximo acesso.
+function initTheme() {
+  const button = document.getElementById('theme-toggle');
+  const app = document.getElementById('app');
+  if (!button || !app) return;
+
+  const savedTheme = localStorage.getItem('centralizar-theme');
+  const theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+
+  const applyTheme = (nextTheme) => {
+    app.dataset.theme = nextTheme;
+    document.documentElement.dataset.theme = nextTheme;
+    const lightIsActive = nextTheme === 'light';
+    button.setAttribute('aria-label', lightIsActive ? 'Alternar para o tema escuro' : 'Alternar para o tema claro');
+    button.querySelector('.theme-toggle__text').textContent = lightIsActive ? 'Tema escuro' : 'Tema claro';
+  };
+
+  applyTheme(theme);
+  button.addEventListener('click', () => {
+    const nextTheme = app.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('centralizar-theme', nextTheme);
+    applyTheme(nextTheme);
+  });
+}
+
+// Em telas pequenas o menu funciona como uma gaveta e não ocupa o conteúdo.
+function initMobileMenu() {
+  const app = document.getElementById('app');
+  const toggle = document.getElementById('mobile-menu-toggle');
+  const close = document.getElementById('mobile-menu-close');
+  const backdrop = document.getElementById('mobile-menu-backdrop');
+  if (!app || !toggle || !close || !backdrop) return;
+
+  const setMenu = (open) => {
+    app.classList.toggle('menu-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+    document.body.classList.toggle('mobile-menu-active', open);
+  };
+
+  toggle.addEventListener('click', () => setMenu(!app.classList.contains('menu-open')));
+  close.addEventListener('click', () => setMenu(false));
+  backdrop.addEventListener('click', () => setMenu(false));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') setMenu(false);
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 800) setMenu(false);
+  });
+}
 
 /* ---------- Abertura de apresentação ---------- */
 // A animação resume o problema do projeto: informações espalhadas passam a ter um ponto central.
@@ -325,6 +377,10 @@ function showView(id) {
   if (id === 'view-usuarios' && State.user.role !== 'gestor') return;
   document.querySelectorAll('.navlink').forEach(l => l.classList.toggle('active', l.dataset.target === id));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
+  // Ao escolher uma tela no celular, liberamos novamente toda a área de leitura.
+  document.getElementById('app')?.classList.remove('menu-open');
+  document.getElementById('mobile-menu-toggle')?.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('mobile-menu-active');
   renderApp();
 }
 
