@@ -171,6 +171,22 @@ html[data-theme="light"] body{background:#e9eef4;color:#1a2b3d}
 html[data-theme="light"] .theme-toggle{border-color:#cbd8e3;background:rgba(255,255,255,.92);box-shadow:0 10px 25px rgba(40,66,89,.12);color:#315b7d}
 html[data-theme="light"] .theme-toggle:hover{border-color:#9dc4e3;background:#f4f9fd;color:#154f7e}
 
+/* Login e janelas seguem a mesma escolha, evitando uma troca de tema incompleta. */
+html[data-theme="light"] #auth-screen{background:radial-gradient(circle at 16% 12%,rgba(47,125,194,.16),transparent 35%),linear-gradient(135deg,#e9f0f6,#dce7f0)}
+html[data-theme="light"] #auth-screen::before{opacity:.24;filter:grayscale(.4)}
+html[data-theme="light"] .auth-intro{color:#18344e}html[data-theme="light"] .wk-signature{border-bottom-color:rgba(34,76,112,.18);color:#55728c}
+html[data-theme="light"] .auth-intro h2{color:#112d47}html[data-theme="light"] .auth-intro__copy p{color:#536f87}html[data-theme="light"] .eyebrow{color:#2572ad}
+html[data-theme="light"] .auth-proof{border-top-color:rgba(48,84,115,.17);border-bottom-color:rgba(48,84,115,.17)}html[data-theme="light"] .auth-proof div+div{border-left-color:rgba(48,84,115,.17)}html[data-theme="light"] .auth-proof strong{color:#2471ad}html[data-theme="light"] .auth-proof span{color:#3e5c75}html[data-theme="light"] .auth-signoff{color:#637d93}
+html[data-theme="light"] .login-card{border-color:rgba(112,151,184,.35);background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(239,245,250,.96));box-shadow:0 30px 75px rgba(42,69,92,.18),inset 0 1px #fff}
+html[data-theme="light"] .login-card .brand-header h1{color:#15334d}html[data-theme="light"] .login-card .brand-header p{color:#667f94}html[data-theme="light"] .login-kicker{color:#2876b2}
+html[data-theme="light"] .login-card .field label{color:#445f76}html[data-theme="light"] .login-card .field input{border-color:#c7d5e1;background:#fff;color:#1c354c}html[data-theme="light"] .login-card .register-link-container a{color:#216aa3}
+html[data-theme="light"] .login-foot{border-top-color:#d5e0e9;color:#617b91}
+html[data-theme="dark"] .modal-card{border:1px solid rgba(126,171,210,.18);background:linear-gradient(145deg,#142a43,#0b1c2f);color:#dbe6f0}
+html[data-theme="dark"] .modal-card .brand-header h1,html[data-theme="dark"] .modal-card h4{color:#f0f5fa}html[data-theme="dark"] .modal-card .brand-header p{color:#8da3b7}
+html[data-theme="dark"] .modal-card .field label{color:#b3c3d2}html[data-theme="dark"] .modal-card input,html[data-theme="dark"] .modal-card select,html[data-theme="dark"] .modal-card textarea{border-color:#2d4964;background:#0a1b2d;color:#eef4f9}
+html[data-theme="dark"] .modal-card .modal-close{background:#173550;color:#dce9f4}html[data-theme="dark"] .modal-card .role-chip{border-color:#31516e;background:#102941;color:#b7c9da}html[data-theme="dark"] .modal-card .role-chip.active{border-color:#4d9ad8;background:#19456b;color:#fff}
+html[data-theme="dark"] .modal-card .upd-settings{border-color:#2b4863!important;background:#0d2238!important;color:#dce7f1}
+
 /* No celular a lateral vira uma gaveta acessível e o conteúdo ganha uma barra própria. */
 @media(max-width:800px){
   body.mobile-menu-active{overflow:hidden}
