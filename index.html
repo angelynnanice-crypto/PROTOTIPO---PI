@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=6">
+<link rel="stylesheet" href="visual-2026.css?v=7">
 </head>
 <body>
 
@@ -262,36 +262,54 @@
             </div>
           </div>
           <div class="stats-row">
-            <div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">Total de Registros</div></div>
-            <div class="stat-card"><div class="num" id="stat-func">0</div><div class="label">Funcionários</div></div>
-            <div class="stat-card"><div class="num" id="stat-setores">0</div><div class="label">Setores</div></div>
-            <div class="stat-card"><div class="num" id="stat-urgentes">0</div><div class="label">Urgentes</div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div><div class="num" id="stat-total">0</div><div class="label">Atividades registradas</div></div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div><div class="num" id="stat-func">0</div><div class="label">Colaboradores envolvidos</div></div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div><div class="num" id="stat-setores">0</div><div class="label">Setores atendidos</div></div></div>
+            <div class="stat-card stat-card--alert"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div><div class="num" id="stat-urgentes">0</div><div class="label">Demandas urgentes</div></div></div>
           </div>
-          <div class="operations-grid">
-            <section class="panel operations-panel">
+          <div class="dashboard-grid dashboard-grid--top">
+            <section class="panel chart-panel">
               <div class="panel-heading">
-                <div><span class="panel-index">01 • DISTRIBUIÇÃO</span><h3>Atividades por tipo</h3></div>
+                <div><span class="panel-index">01 • ÚLTIMOS 7 DIAS</span><h3>Movimento de atividades</h3></div>
                 <span class="panel-live"><i></i> DADOS ATUAIS</span>
               </div>
-              <div class="activity-bars" id="activity-bars"></div>
+              <div class="weekly-chart" id="weekly-chart" aria-label="Registros dos últimos sete dias"></div>
             </section>
-            <section class="panel operations-panel">
+            <section class="panel chart-panel">
               <div class="panel-heading">
-                <div><span class="panel-index">02 • PRIORIDADE</span><h3>Situação operacional</h3></div>
+                <div><span class="panel-index">02 • DISTRIBUIÇÃO</span><h3>Tipos de atividade</h3></div>
               </div>
-              <div class="priority-matrix" id="priority-matrix"></div>
+              <div class="donut-layout"><div class="donut-chart" id="type-donut"><div><strong id="donut-total">0</strong><span>TOTAL</span></div></div><div class="donut-legend" id="donut-legend"></div></div>
             </section>
           </div>
+          <div class="dashboard-grid dashboard-grid--bottom">
+            <section class="panel chart-panel">
+              <div class="panel-heading"><div><span class="panel-index">03 • CARGA OPERACIONAL</span><h3>Horas registradas por setor</h3></div></div>
+              <div class="sector-bars" id="sector-hours"></div>
+            </section>
+            <section class="panel attention-panel">
+              <div class="panel-heading"><div><span class="panel-index">04 • ACOMPANHAMENTO</span><h3>Atenção necessária</h3></div></div>
+              <div class="attention-list" id="attention-list"></div>
+            </section>
+          </div>
+          <section class="quick-actions" aria-label="Ações rápidas">
+            <button type="button" data-open-view="view-novo"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span><strong>Novo registro</strong><small>Cadastrar uma atividade</small></span></button>
+            <button type="button" data-open-view="view-protocolos"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"/></svg><span><strong>Consultar</strong><small>Localizar atividades</small></span></button>
+            <button type="button" data-open-view="view-relatorios"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span><strong>Relatórios</strong><small>Analisar os resultados</small></span></button>
+            <button type="button" id="dashboard-export"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg><span><strong>Exportar CSV</strong><small>Abrir os dados no Excel</small></span></button>
+          </section>
           <div class="panel">
-            <div class="panel-heading"><div><span class="panel-index">03 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
+            <div class="panel-heading"><div><span class="panel-index">05 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
             <p class="panel-sub">Atividades mais recentes registradas pela equipe.</p>
             <div style="overflow-x:auto;">
               <table id="recent-table">
                 <thead>
                   <tr>
                     <th>Registro</th>
-                    <th>Título / Atividade</th>
-                    <th>Responsável</th>
+                    <th>Atividade</th>
+                    <th>Responsável e setor</th>
+                    <th>Data</th>
+                    <th>Prioridade</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
