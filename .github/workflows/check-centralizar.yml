@@ -1,0 +1,42 @@
+name: Verificar CENTRALIZAR
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter projeto
+        uses: actions/checkout@v4
+      - name: Conferir sintaxe JavaScript
+        run: node --check app.js
+      - name: Conferir integridade HTML, CSS e IDs
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const html = fs.readFileSync('index.html','utf8');
+          const js = fs.readFileSync('app.js','utf8');
+          const css = fs.readFileSync('dashboard-executivo-v2.css','utf8');
+          const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+          assert.equal(ids.length, new Set(ids).size, 'IDs HTML duplicados');
+          const targets = [...js.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)].map(m => m[1]);
+          const missing = [...new Set(targets.filter(id => !ids.includes(id)))];
+          assert.deepEqual(missing, [], 'IDs usados em app.js ausentes no HTML');
+          for (const id of ['stat-horas','trend-horas','dashboard-period','dashboard-sector',
+            'dashboard-priority','dashboard-export','priority-chart','people-workload',
+            'weekly-chart','type-donut','recent-table']) {
+            assert.ok(ids.includes(id), 'Indicador ausente: ' + id);
+          }
+          assert.ok(html.includes('dashboard-executivo-v2.css'), 'CSS executivo nao carregado');
+          assert.ok(js.includes('function getDashboardResumo()'), 'CSV filtrado nao implementado');
+          assert.equal((css.match(/{/g) || []).length, (css.match(/}/g) || []).length,
+            'Chaves do CSS desbalanceadas');
+          assert.ok(js.includes("sb.auth.signInWithPassword"), 'Login nao preservado');
+          assert.ok(js.includes("sb.from('registros')"), 'Consulta ao Supabase nao preservada');
+          process.stdout.write('Integridade basica do dashboard: OK\n');
+          NODE
