@@ -9,7 +9,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const State = {
   user: { id: '', name: '', role: 'analista', email: '' },
   users: [],
-  protocols: []
+  protocols: [],
+  dashboardPeriod: '30'
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -456,6 +457,13 @@ function initFilters() {
   if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
   const dashboardExp = document.getElementById('dashboard-export');
   if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getRelatorio()));
+  const dashboardPeriod = document.getElementById('dashboard-period');
+  if (dashboardPeriod) dashboardPeriod.addEventListener('change', () => {
+    State.dashboardPeriod = dashboardPeriod.value;
+    renderStats();
+    renderOperationalPanels();
+    renderCommandCenter();
+  });
 }
 
 /* ---------- Atualização das informações na tela ---------- */
@@ -463,11 +471,66 @@ function initFilters() {
 function renderApp() {
   renderStats();
   renderOperationalPanels();
+  renderCommandCenter();
   renderRecentTable();
   renderProtocolsTable();
   renderReports();
   renderProfile();
   renderUsers();
+}
+
+// Separamos o período atual e o anterior para que os indicadores tragam contexto.
+function getDashboardProtocols(previous = false) {
+  if (State.dashboardPeriod === 'all') return previous ? [] : State.protocols;
+  const days = Number(State.dashboardPeriod) || 30;
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  const currentStart = new Date(end);
+  currentStart.setDate(currentStart.getDate() - days + 1);
+  currentStart.setHours(0, 0, 0, 0);
+  const previousStart = new Date(currentStart);
+  previousStart.setDate(previousStart.getDate() - days);
+  const start = previous ? previousStart : currentStart;
+  const finish = previous ? new Date(currentStart.getTime() - 1) : end;
+  return State.protocols.filter(protocol => {
+    if (!protocol.data) return false;
+    const date = new Date(`${protocol.data}T00:00:00`);
+    return date >= start && date <= finish;
+  });
+}
+
+function trendText(current, previous) {
+  if (!previous) return current ? '+100%' : '—';
+  const value = Math.round(((current - previous) / previous) * 100);
+  return `${value > 0 ? '+' : ''}${value}%`;
+}
+
+// Os dois painéis adicionais mostram prioridade e distribuição da carga da equipe.
+function renderCommandCenter() {
+  const priority = document.getElementById('priority-chart');
+  const people = document.getElementById('people-workload');
+  const updated = document.getElementById('dashboard-updated');
+  if (!priority || !people || !updated) return;
+  const protocols = getDashboardProtocols();
+
+  const priorities = [
+    { name: 'Urgente', color: '#ff6b6b' },
+    { name: 'Alta', color: '#ffb454' },
+    { name: 'Normal', color: '#58a9ee' },
+    { name: 'Baixa', color: '#55d6a0' }
+  ].map(item => ({ ...item, count: protocols.filter(p => (p.priority || 'Normal') === item.name).length }));
+  const priorityMax = Math.max(1, ...priorities.map(item => item.count));
+  priority.innerHTML = priorities.map(item => `<div class="priority-row"><div><i style="background:${item.color}"></i><span>${item.name}</span><strong>${item.count}</strong></div><b><span style="width:${Math.round((item.count / priorityMax) * 100)}%;background:${item.color}"></span></b></div>`).join('');
+
+  const workload = {};
+  protocols.forEach(protocol => {
+    const name = protocol.funcionario || protocol.author || 'Sem responsável';
+    workload[name] = (workload[name] || 0) + 1;
+  });
+  const ranking = Object.entries(workload).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const peopleMax = Math.max(1, ...ranking.map(item => item[1]));
+  people.innerHTML = ranking.length ? ranking.map(([name, count], index) => `<div class="person-row"><span class="person-avatar">${escapeHTML(name).charAt(0).toUpperCase()}</span><div><strong>${escapeHTML(name)}</strong><b><i style="width:${Math.round((count / peopleMax) * 100)}%"></i></b></div><em>${count}</em></div>`).join('') : estadoVazio('Ainda não há colaboradores neste período.');
+  updated.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // Transformamos os registros em um resumo visual sem criar dados fictícios.
@@ -479,6 +542,7 @@ function renderOperationalPanels() {
   const attention = document.getElementById('attention-list');
   if (!weekly || !donut || !legend || !sectors || !attention) return;
 
+  const protocols = getDashboardProtocols();
   // Montamos as sete colunas usando a data de cada registro.
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -486,7 +550,7 @@ function renderOperationalPanels() {
     const data = new Date(hoje);
     data.setDate(hoje.getDate() - (6 - indice));
     const iso = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
-    return { iso, rotulo: data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), quantidade: State.protocols.filter(p => p.data === iso).length };
+    return { iso, rotulo: data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), quantidade: protocols.filter(p => p.data === iso).length };
   });
   const maiorDia = Math.max(1, ...dias.map(d => d.quantidade));
   weekly.innerHTML = dias.map(d => `<div class="week-column"><strong>${d.quantidade}</strong><span class="week-bar"><i style="height:${Math.max(6, Math.round((d.quantidade / maiorDia) * 100))}%"></i></span><small>${d.rotulo}</small></div>`).join('');
@@ -497,21 +561,21 @@ function renderOperationalPanels() {
     { nome: 'Cobertura', valor: 'Cobertura de horário', cor: '#45a0d8' },
     { nome: 'Apoio', valor: 'Apoio operacional', cor: '#39a675' },
     { nome: 'Extraordinária', valor: 'Atividade extraordinária', cor: '#d08a32' }
-  ].map(item => ({ ...item, quantidade: State.protocols.filter(p => p.tipo === item.valor).length }));
-  const total = Math.max(1, State.protocols.length);
+  ].map(item => ({ ...item, quantidade: protocols.filter(p => p.tipo === item.valor).length }));
+  const total = Math.max(1, protocols.length);
   let acumulado = 0;
   const partes = tipos.map(item => {
     const inicio = acumulado;
     acumulado += (item.quantidade / total) * 100;
     return `${item.cor} ${inicio}% ${acumulado}%`;
   });
-  donut.style.setProperty('--donut', State.protocols.length ? `conic-gradient(${partes.join(',')})` : 'conic-gradient(#dfe5ec 0 100%)');
-  document.getElementById('donut-total').textContent = State.protocols.length;
+  donut.style.setProperty('--donut', protocols.length ? `conic-gradient(${partes.join(',')})` : 'conic-gradient(#dfe5ec 0 100%)');
+  document.getElementById('donut-total').textContent = protocols.length;
   legend.innerHTML = tipos.map(item => `<div><i style="background:${item.cor}"></i><span>${item.nome}</span><strong>${item.quantidade}</strong></div>`).join('');
 
   // Somamos as horas válidas e mostramos os cinco setores com maior carga.
   const mapaSetores = {};
-  State.protocols.forEach(p => {
+  protocols.forEach(p => {
     if (!p.setor || !p.inicio || !p.fim || minutos(p.fim) <= minutos(p.inicio)) return;
     mapaSetores[p.setor] = (mapaSetores[p.setor] || 0) + minutos(p.fim) - minutos(p.inicio);
   });
@@ -519,7 +583,7 @@ function renderOperationalPanels() {
   const maiorSetor = Math.max(1, ...listaSetores.map(item => item[1]));
   sectors.innerHTML = listaSetores.length ? listaSetores.map(([nome, min]) => `<div class="sector-bar"><div><span>${escapeHTML(nome)}</span><strong>${(min / 60).toFixed(1).replace('.', ',')} h</strong></div><i><b style="width:${Math.round((min / maiorSetor) * 100)}%"></b></i></div>`).join('') : estadoVazio('Ainda não há horas válidas para comparar os setores.');
 
-  const criticos = State.protocols.filter(p => p.priority === 'Urgente' || p.priority === 'Alta').slice(0, 4);
+  const criticos = protocols.filter(p => p.priority === 'Urgente' || p.priority === 'Alta').slice(0, 4);
   attention.innerHTML = criticos.length ? criticos.map(p => `<article><span class="attention-dot ${p.priority === 'Urgente' ? 'urgent' : 'high'}"></span><div><strong>${escapeHTML(p.title)}</strong><small>${escapeHTML(p.funcionario || 'Sem responsável')} • ${formatarData(p.data)}</small></div><em>${p.priority}</em></article>`).join('') : estadoVazio('Nenhuma atividade urgente ou de alta prioridade.');
 }
 
@@ -535,11 +599,21 @@ function formatarData(iso) {
 
 // Contamos os registros, funcionários, setores e atividades urgentes.
 function renderStats() {
-  const unicos = campo => new Set(State.protocols.map(p => p[campo]).filter(Boolean)).size;
-  document.getElementById('stat-total').textContent = State.protocols.length;
-  document.getElementById('stat-func').textContent = unicos('funcionario');
-  document.getElementById('stat-setores').textContent = unicos('setor');
-  document.getElementById('stat-urgentes').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
+  const current = getDashboardProtocols();
+  const previous = getDashboardProtocols(true);
+  const unique = (list, field) => new Set(list.map(p => p[field]).filter(Boolean)).size;
+  const values = {
+    total: [current.length, previous.length],
+    func: [unique(current, 'funcionario'), unique(previous, 'funcionario')],
+    setores: [unique(current, 'setor'), unique(previous, 'setor')],
+    urgentes: [current.filter(p => p.priority === 'Urgente').length, previous.filter(p => p.priority === 'Urgente').length]
+  };
+  Object.entries(values).forEach(([key, [now, before]]) => {
+    document.getElementById(`stat-${key}`).textContent = now;
+    const trend = document.getElementById(`trend-${key}`);
+    trend.textContent = State.dashboardPeriod === 'all' ? 'TOTAL' : trendText(now, before);
+    trend.classList.toggle('negative', now < before);
+  });
 }
 
 function renderRecentTable() {
