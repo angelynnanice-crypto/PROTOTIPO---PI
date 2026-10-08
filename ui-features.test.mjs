@@ -38,7 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /src="app\.js\?v=14"/);
+  assert.match(html, /href="visual-2026\.css\?v=15"/);
+  assert.match(html, /src="app\.js\?v=15"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -64,10 +65,30 @@ teste('transforma a barra lateral em gaveta no celular', () => {
   assert.match(css, /@media\(max-width:800px\)[\s\S]*\.sidebar[\s\S]*translateX/);
 });
 
-teste('organiza o dashboard como uma central de comando', () => {
-  assert.match(html, /class="command-header"/);
-  assert.match(html, /id="dashboard-period"/);
+teste('organiza o dashboard V2 com cabeçalho compacto', () => {
+  assert.doesNotMatch(html, /class="command-header"/);
+  assert.match(html, /class="dashboard-toolbar"/);
   assert.match(html, /id="dashboard-updated"/);
+  assert.match(html, /data-open-view="view-novo"/);
+  assert.match(html, /id="dashboard-export"/);
+});
+
+teste('oferece os três filtros executivos', () => {
+  ['dashboard-period', 'dashboard-sector', 'dashboard-priority'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"`));
+  });
+});
+
+teste('exibe cinco indicadores principais', () => {
+  ['stat-total', 'stat-hours', 'stat-func', 'stat-setores', 'stat-urgentes'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"`));
+  });
+});
+
+teste('mantém os painéis analíticos e a tabela recente', () => {
+  ['weekly-chart', 'type-donut', 'sector-hours', 'priority-chart', 'people-workload', 'recent-table'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"`));
+  });
 });
 
 teste('mostra comparação nos quatro indicadores principais', () => {
@@ -83,15 +104,53 @@ teste('inclui gráficos de prioridade e carga por colaborador', () => {
 
 teste('filtra os indicadores pelo período escolhido', () => {
   assert.match(js, /dashboardPeriod/);
-  assert.match(js, /getDashboardProtocols/);
+  assert.match(js, /getDashboardRecords/);
   assert.match(js, /renderCommandCenter/);
 });
 
-teste('possui acabamento específico do command center', () => {
-  assert.match(css, /\.command-header/);
+teste('aplica setor e prioridade ao mesmo conjunto do dashboard', () => {
+  assert.match(js, /dashboard-sector/);
+  assert.match(js, /dashboard-priority/);
+  assert.match(js, /function getDashboardRecords/);
+  assert.match(js, /renderDashboard/);
+});
+
+teste('protege os painéis contra campos ausentes e listas vazias', () => {
+  assert.match(js, /safeText/);
+  assert.match(js, /protocols\.length \?/);
+  assert.match(js, /estadoVazio/);
+});
+
+teste('usa o mesmo recorte filtrado nos KPIs, gráficos e tabela recente', () => {
+  assert.match(js, /function renderStats\(protocols = getDashboardRecords\(\)\)/);
+  assert.match(js, /function renderOperationalPanels\(protocols = getDashboardRecords\(\)\)/);
+  assert.match(js, /function renderCommandCenter\(protocols = getDashboardRecords\(\)\)/);
+  assert.match(js, /function renderRecentTable\(protocols = getDashboardRecords\(\)\)/);
+});
+
+teste('possui acabamento específico do dashboard V2', () => {
+  assert.match(css, /\.dashboard-toolbar/);
+  assert.match(css, /\.dashboard-filters/);
   assert.match(css, /\.kpi-trend/);
   assert.match(css, /\.priority-chart/);
   assert.match(css, /\.people-workload/);
+});
+
+teste('mantém tipografia funcional legível', () => {
+  assert.match(css, /\.dashboard-toolbar\{[\s\S]*font-size:14px/);
+  assert.match(css, /\.dashboard-filters label\{[\s\S]*font-size:12px/);
+  assert.match(css, /\.kpi-grid[\s\S]*\.stat-card \.num\{[\s\S]*font-size:clamp\(32px/);
+});
+
+teste('inclui estados de foco nos controles do dashboard', () => {
+  assert.match(css, /\.dashboard-btn:focus-visible/);
+  assert.match(css, /\.dashboard-filters select:focus-visible/);
+});
+
+teste('adapta o dashboard em notebook, tablet e celular', () => {
+  assert.match(css, /@media\(max-width:1024px\)/);
+  assert.match(css, /@media\(max-width:768px\)/);
+  assert.match(css, /@media\(max-width:480px\)/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
