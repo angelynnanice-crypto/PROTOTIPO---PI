@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=13">
+<link rel="stylesheet" href="visual-2026.css?v=14">
 </head>
 <body>
 
@@ -29,13 +29,6 @@
     <div class="intro-meta"><span>PROJETO INTEGRADOR • SENAI</span><span>WK SOLUÇÕES INDUSTRIAIS</span></div>
     <button class="intro-skip" id="intro-skip" type="button">PULAR INTRODUÇÃO</button>
   </div>
-
-  <!-- O mesmo controle troca o tema no login e dentro do sistema. -->
-  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar para o tema claro" title="Alternar tema">
-    <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-    <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
-    <span class="theme-toggle__text">Tema claro</span>
-  </button>
 
   <!-- Estas telas usam os mesmos IDs lidos pelo app.js. Se mudar um ID aqui, precisamos ajustar o JavaScript também. -->
   <!-- TELA DE AUTENTICAÇÃO (LOGIN COM MODAL DE CADASTRO) -->
@@ -210,6 +203,10 @@
         <span></span><span></span><span></span>
       </button>
       <div class="mobile-brand"><span>C</span><strong>CENTRALIZAR</strong></div>
+      <button class="theme-toggle theme-toggle--mobile" id="mobile-theme-toggle" data-theme-toggle type="button" aria-label="Alternar para o tema claro" title="Alternar tema">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+      </button>
     </header>
     <button class="mobile-menu-backdrop" id="mobile-menu-backdrop" type="button" aria-label="Fechar menu"></button>
     <div class="shell">
@@ -250,6 +247,11 @@
 </button>
         </nav>
         <div class="sidebar-foot">
+          <button class="theme-toggle theme-toggle--sidebar" id="theme-toggle" data-theme-toggle type="button" aria-label="Alternar para o tema claro" title="Alternar tema">
+            <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+            <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+            <span class="theme-toggle__text">Tema claro</span>
+          </button>
           <div class="role-badge" id="sidebar-role-label">Perfil: Analista</div>
           <div class="user-row">
             <span id="sidebar-user-name">Usuário</span>
@@ -592,6 +594,6 @@
 
   <!-- SCRIPT -->
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
