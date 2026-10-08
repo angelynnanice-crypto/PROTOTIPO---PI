@@ -20,6 +20,11 @@ teste('oferece botão acessível para trocar o tema', () => {
   assert.match(html, /aria-label="Alternar para o tema claro"/);
 });
 
+teste('mantém o seletor de tema no rodapé da barra lateral', () => {
+  assert.match(html, /class="sidebar-foot"[\s\S]*id="theme-toggle"[\s\S]*id="sidebar-role-label"/);
+  assert.doesNotMatch(css, /\.theme-toggle\{position:fixed/);
+});
+
 teste('oferece menu móvel com botão, painel e fundo de apoio', () => {
   assert.match(html, /id="mobile-menu-toggle"/);
   assert.match(html, /id="mobile-menu-backdrop"/);
@@ -33,7 +38,7 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /src="app\.js\?v=13"/);
+  assert.match(html, /src="app\.js\?v=14"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
