@@ -32,6 +32,10 @@ teste('inicializa e salva a preferência de tema', () => {
   assert.match(js, /dataset\.theme/);
 });
 
+teste('impede que o navegador reutilize o JavaScript antigo', () => {
+  assert.match(html, /src="app\.js\?v=11"/);
+});
+
 teste('controla abertura e fechamento do menu móvel', () => {
   assert.match(js, /initMobileMenu/);
   assert.match(js, /menu-open/);
