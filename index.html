@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=12">
+<link rel="stylesheet" href="visual-2026.css?v=13">
 </head>
 <body>
 
@@ -263,25 +263,30 @@
 
         <!-- VISÃO GERAL -->
         <div id="view-dashboard" class="view active">
-          <div class="wk-context">
-            <div><span class="wk-context__flag">CENTRAL OPERACIONAL • VISÃO GERAL</span><strong>Registro organizado.<br>Gestão com visibilidade.</strong></div>
-            <span>Atividades, responsáveis e horários reunidos para apoiar a rotina administrativa da WK Soluções Industriais.</span>
-            <div class="wk-context__actions">
-              <div class="wk-context__status"><i></i> SISTEMA OPERACIONAL</div>
-              <button type="button" class="operational-cta" data-open-view="view-novo">+ REGISTRAR ATIVIDADE</button>
+          <section class="command-header">
+            <div class="command-header__copy">
+              <span class="command-eyebrow"><i></i> CENTRAL OPERACIONAL</span>
+              <h2>Visão geral<br><span>das atividades</span></h2>
+              <p>Indicadores, prioridades e carga da equipe em um único ambiente de decisão.</p>
             </div>
-          </div>
-          <div class="topbar">
-            <div>
-              <h2>Visão geral das atividades</h2>
-              <p class="sub">Resumo dos registros compartilhados pela equipe.</p>
+            <div class="command-header__controls">
+              <label for="dashboard-period">PERÍODO ANALISADO</label>
+              <select id="dashboard-period">
+                <option value="7">Últimos 7 dias</option>
+                <option value="30" selected>Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+                <option value="all">Todo o histórico</option>
+              </select>
+              <div class="command-updated"><i></i><span>Dados sincronizados<strong id="dashboard-updated">agora</strong></span></div>
+              <button type="button" class="operational-cta" data-open-view="view-novo">+ NOVA ATIVIDADE</button>
             </div>
-          </div>
+            <div class="command-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+          </section>
           <div class="stats-row">
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div><div class="num" id="stat-total">0</div><div class="label">Atividades registradas</div></div></div>
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div><div class="num" id="stat-func">0</div><div class="label">Colaboradores envolvidos</div></div></div>
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div><div class="num" id="stat-setores">0</div><div class="label">Setores atendidos</div></div></div>
-            <div class="stat-card stat-card--alert"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div><div class="num" id="stat-urgentes">0</div><div class="label">Demandas urgentes</div></div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Atividades</span><span class="kpi-trend" id="trend-total">—</span></div><div class="num" id="stat-total">0</div><small>No período selecionado</small></div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Colaboradores</span><span class="kpi-trend" id="trend-func">—</span></div><div class="num" id="stat-func">0</div><small>Com atividade registrada</small></div></div>
+            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Setores</span><span class="kpi-trend" id="trend-setores">—</span></div><div class="num" id="stat-setores">0</div><small>Áreas movimentadas</small></div></div>
+            <div class="stat-card stat-card--alert"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Urgentes</span><span class="kpi-trend" id="trend-urgentes">—</span></div><div class="num" id="stat-urgentes">0</div><small>Exigem atenção imediata</small></div></div>
           </div>
           <div class="dashboard-grid dashboard-grid--top">
             <section class="panel chart-panel">
@@ -308,6 +313,16 @@
               <div class="attention-list" id="attention-list"></div>
             </section>
           </div>
+          <div class="dashboard-grid dashboard-grid--insights">
+            <section class="panel insight-panel">
+              <div class="panel-heading"><div><span class="panel-index">05 • NÍVEL DE ATENÇÃO</span><h3>Distribuição por prioridade</h3></div><span class="panel-code">VISÃO OPERACIONAL</span></div>
+              <div class="priority-chart" id="priority-chart"></div>
+            </section>
+            <section class="panel insight-panel">
+              <div class="panel-heading"><div><span class="panel-index">06 • EQUIPE</span><h3>Carga por colaborador</h3></div><span class="panel-code">TOP 5</span></div>
+              <div class="people-workload" id="people-workload"></div>
+            </section>
+          </div>
           <section class="quick-actions" aria-label="Ações rápidas">
             <button type="button" data-open-view="view-novo"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span><strong>Novo registro</strong><small>Cadastrar uma atividade</small></span></button>
             <button type="button" data-open-view="view-protocolos"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"/></svg><span><strong>Consultar</strong><small>Localizar atividades</small></span></button>
@@ -315,7 +330,7 @@
             <button type="button" id="dashboard-export"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg><span><strong>Exportar CSV</strong><small>Abrir os dados no Excel</small></span></button>
           </section>
           <div class="panel">
-            <div class="panel-heading"><div><span class="panel-index">05 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
+            <div class="panel-heading"><div><span class="panel-index">07 • HISTÓRICO</span><h3>Atividades recentes</h3></div><span class="panel-code">ÚLTIMOS 5 REGISTROS</span></div>
             <p class="panel-sub">Atividades mais recentes registradas pela equipe.</p>
             <div style="overflow-x:auto;">
               <table id="recent-table">
@@ -577,6 +592,6 @@
 
   <!-- SCRIPT -->
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
