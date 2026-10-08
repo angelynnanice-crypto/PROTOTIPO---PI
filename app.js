@@ -13,13 +13,35 @@ const State = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  [initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters, initUsers]
+  [initCinematicIntro, initModal, initUpdateModal, initLogin, initRegister, initNavigation, initForms, initFilters, initUsers]
     .forEach(fn => {
       try { fn(); } catch (e) { console.error('Erro em ' + fn.name + ':', e); }
     });
   const { data } = await sb.auth.getSession();
   if (data.session) await entrar(data.session.user);
 });
+
+/* ---------- Abertura de apresentação ---------- */
+// A animação resume o problema do projeto: informações espalhadas passam a ter um ponto central.
+function initCinematicIntro() {
+  const intro = document.getElementById('cinematic-intro');
+  const skip = document.getElementById('intro-skip');
+  if (!intro || !skip) return;
+
+  let finalizada = false;
+  const encerrar = () => {
+    if (finalizada) return;
+    finalizada = true;
+    intro.classList.add('is-leaving');
+    setTimeout(() => intro.remove(), 850);
+  };
+
+  skip.addEventListener('click', encerrar);
+
+  // Mantemos a abertura curta para não atrapalhar o uso cotidiano do sistema.
+  const tempo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 4700;
+  setTimeout(encerrar, tempo);
+}
 
 /* ---------- Dados do sistema ---------- */
 // O Supabase guarda os registros e usuários para que os dados não fiquem só neste computador.
