@@ -48,6 +48,11 @@ teste('possui estilos completos para tema claro', () => {
   assert.match(css, /#app\[data-theme="light"\] table/);
 });
 
+teste('aplica os dois temas também ao login e aos modais', () => {
+  assert.match(css, /html\[data-theme="light"\] #auth-screen/);
+  assert.match(css, /html\[data-theme="dark"\] \.modal-card/);
+});
+
 teste('transforma a barra lateral em gaveta no celular', () => {
   assert.match(css, /\.mobile-topbar/);
   assert.match(css, /\.mobile-menu-toggle/);
