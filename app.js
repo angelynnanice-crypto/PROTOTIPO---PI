@@ -332,6 +332,10 @@ function initNavigation() {
   document.querySelectorAll('.navlink').forEach(link =>
     link.addEventListener('click', () => showView(link.dataset.target))
   );
+  // Os atalhos do painel usam a mesma navegação do menu lateral.
+  document.querySelectorAll('[data-open-view]').forEach(button =>
+    button.addEventListener('click', () => showView(button.dataset.openView))
+  );
 }
 
 // Lemos o formulário, conferimos o horário e enviamos o novo registro ao banco.
@@ -400,11 +404,38 @@ function initFilters() {
 // Quando os dados mudam, atualizamos tabelas, indicadores e relatórios.
 function renderApp() {
   renderStats();
+  renderOperationalPanels();
   renderRecentTable();
   renderProtocolsTable();
   renderReports();
   renderProfile();
   renderUsers();
+}
+
+// Transformamos os registros em um resumo visual sem criar dados fictícios.
+function renderOperationalPanels() {
+  const bars = document.getElementById('activity-bars');
+  const matrix = document.getElementById('priority-matrix');
+  if (!bars || !matrix) return;
+
+  const tipos = ['Substituição temporária', 'Cobertura de horário', 'Apoio operacional', 'Atividade extraordinária'];
+  const maiorTipo = Math.max(1, ...tipos.map(tipo => State.protocols.filter(p => p.tipo === tipo).length));
+  bars.innerHTML = tipos.map((tipo, indice) => {
+    const quantidade = State.protocols.filter(p => p.tipo === tipo).length;
+    const percentual = Math.round((quantidade / maiorTipo) * 100);
+    return `<div class="activity-bar"><span class="activity-bar__index">0${indice + 1}</span><span class="activity-bar__name">${tipo}</span><span class="activity-bar__track"><i style="width:${percentual}%"></i></span><strong>${quantidade}</strong></div>`;
+  }).join('');
+
+  const prioridades = [
+    { nome: 'Urgente', classe: 'critical' },
+    { nome: 'Alta', classe: 'high' },
+    { nome: 'Normal', classe: 'normal' },
+    { nome: 'Baixa', classe: 'low' }
+  ];
+  matrix.innerHTML = prioridades.map(item => {
+    const quantidade = State.protocols.filter(p => p.priority === item.nome).length;
+    return `<div class="priority-cell ${item.classe}"><span>${item.nome}</span><strong>${quantidade}</strong><small>REGISTROS</small></div>`;
+  }).join('');
 }
 
 function formatarData(iso) {
