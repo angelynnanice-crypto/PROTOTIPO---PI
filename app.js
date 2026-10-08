@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* ---------- Tema e navegação no celular ---------- */
 // A preferência fica salva neste navegador para manter a escolha no próximo acesso.
 function initTheme() {
-  const button = document.getElementById('theme-toggle');
+  const buttons = document.querySelectorAll('[data-theme-toggle]');
   const app = document.getElementById('app');
-  if (!button || !app) return;
+  if (!buttons.length || !app) return;
 
   const savedTheme = localStorage.getItem('centralizar-theme');
   const theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
@@ -36,15 +36,20 @@ function initTheme() {
     app.dataset.theme = nextTheme;
     document.documentElement.dataset.theme = nextTheme;
     const lightIsActive = nextTheme === 'light';
-    button.setAttribute('aria-label', lightIsActive ? 'Alternar para o tema escuro' : 'Alternar para o tema claro');
-    button.querySelector('.theme-toggle__text').textContent = lightIsActive ? 'Tema escuro' : 'Tema claro';
+    buttons.forEach(button => {
+      button.setAttribute('aria-label', lightIsActive ? 'Alternar para o tema escuro' : 'Alternar para o tema claro');
+      const text = button.querySelector('.theme-toggle__text');
+      if (text) text.textContent = lightIsActive ? 'Tema escuro' : 'Tema claro';
+    });
   };
 
   applyTheme(theme);
-  button.addEventListener('click', () => {
-    const nextTheme = app.dataset.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('centralizar-theme', nextTheme);
-    applyTheme(nextTheme);
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const nextTheme = app.dataset.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('centralizar-theme', nextTheme);
+      applyTheme(nextTheme);
+    });
   });
 }
 
