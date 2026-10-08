@@ -505,23 +505,68 @@ function renderApp() {
 }
 
 // Separamos o período atual e o anterior para que os indicadores tragam contexto.
+// Recorte real do painel: periodo, setor e prioridade.
 function getDashboardProtocols(previous = false) {
-  if (State.dashboardPeriod === 'all') return previous ? [] : State.protocols;
-  const days = Number(State.dashboardPeriod) || 30;
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
-  const currentStart = new Date(end);
-  currentStart.setDate(currentStart.getDate() - days + 1);
-  currentStart.setHours(0, 0, 0, 0);
-  const previousStart = new Date(currentStart);
-  previousStart.setDate(previousStart.getDate() - days);
-  const start = previous ? previousStart : currentStart;
-  const finish = previous ? new Date(currentStart.getTime() - 1) : end;
-  return State.protocols.filter(protocol => {
-    if (!protocol.data) return false;
-    const date = new Date(`${protocol.data}T00:00:00`);
-    return date >= start && date <= finish;
+  let periodList = [];
+  if (State.dashboardPeriod === 'all') {
+    periodList = previous ? [] : State.protocols;
+  } else {
+    const days = Number(State.dashboardPeriod) || 30;
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const currentStart = new Date(end);
+    currentStart.setDate(currentStart.getDate() - days + 1);
+    currentStart.setHours(0, 0, 0, 0);
+    const previousStart = new Date(currentStart);
+    previousStart.setDate(previousStart.getDate() - days);
+    const start = previous ? previousStart : currentStart;
+    const finish = previous ? new Date(currentStart.getTime() - 1) : end;
+    periodList = State.protocols.filter(p => {
+      if (!p.data) return false;
+      const date = new Date(p.data + 'T00:00:00');
+      return date >= start && date <= finish;
+    });
+  }
+  return periodList.filter(p =>
+    (!State.dashboardSector || p.setor === State.dashboardSector) &&
+    (!State.dashboardPriority || (p.priority || 'Normal') === State.dashboardPriority)
+  );
+}
+
+// Atualiza a lista de setores usando somente os registros existentes.
+function renderDashboardFilters() {
+  const select = document.getElementById('dashboard-sector');
+  if (!select) return;
+  const sectors = Array.from(new Set(State.protocols.map(p => p.setor).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  if (State.dashboardSector && !sectors.includes(State.dashboardSector)) {
+    State.dashboardSector = '';
+  }
+  select.innerHTML = '<option value="">Todos os setores</option>' +
+    sectors.map(sector => '<option value="' + escapeHTML(sector) + '">' + escapeHTML(sector) + '</option>').join('');
+  select.value = State.dashboardSector;
+}
+
+// O CSV do painel respeita os filtros. O relatorio tradicional permanece separado.
+function getDashboardResumo() {
+  const rows = new Map();
+  getDashboardProtocols().forEach(p => {
+    if (!p.funcionario) return;
+    const setor = p.setor || '—';
+    const key = JSON.stringify([p.funcionario, setor]);
+    const item = rows.get(key) || { funcionario: p.funcionario, setor, qtd: 0, min: 0 };
+    item.qtd += 1;
+    if (p.inicio && p.fim && minutos(p.fim) > minutos(p.inicio)) {
+      item.min += minutos(p.fim) - minutos(p.inicio);
+    }
+    rows.set(key, item);
   });
+  return Array.from(rows.values()).map(row => ({
+    funcionario: row.funcionario,
+    setor: row.setor,
+    qtd: row.qtd,
+    horas: (row.min / 60).toFixed(1)
+  }));
 }
 
 function trendText(current, previous) {
