@@ -38,8 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /href="visual-2026\.css\?v=15"/);
-  assert.match(html, /src="app\.js\?v=15"/);
+  assert.match(html, /href="visual-2026\.css\?v=16"/);
+  assert.match(html, /src="app\.js\?v=16"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -151,6 +151,36 @@ teste('adapta o dashboard em notebook, tablet e celular', () => {
   assert.match(css, /@media\(max-width:1024px\)/);
   assert.match(css, /@media\(max-width:768px\)/);
   assert.match(css, /@media\(max-width:480px\)/);
+});
+
+teste('diferencia visualmente os cinco indicadores com cores funcionais', () => {
+  ['kpi--blue', 'kpi--cyan', 'kpi--violet', 'kpi--green', 'kpi--red'].forEach(classe => {
+    assert.match(html, new RegExp(classe));
+  });
+  assert.match(css, /\.kpi--blue/);
+  assert.match(css, /\.kpi--cyan/);
+  assert.match(css, /\.kpi--violet/);
+  assert.match(css, /\.kpi--green/);
+  assert.match(css, /\.kpi--red/);
+});
+
+teste('renderiza o gráfico principal como linha e área com volume e horas reais', () => {
+  assert.match(html, /class="trend-legend"/);
+  assert.match(html, /Atividades[\s\S]*Horas/);
+  assert.match(js, /class="trend-svg"/);
+  assert.match(js, /linearGradient/);
+  assert.match(js, /trend-area/);
+  assert.match(js, /trend-line--hours/);
+  assert.doesNotMatch(js, /class="week-column"/);
+});
+
+teste('usa composição executiva rica sem voltar ao visual monocromático', () => {
+  assert.match(html, /dashboard-section-grid dashboard-section-grid--hero/);
+  assert.match(html, /dashboard-section-grid dashboard-section-grid--details/);
+  assert.match(css, /--dash-violet/);
+  assert.match(css, /--dash-orange/);
+  assert.match(css, /--dash-green/);
+  assert.match(css, /\.donut-chart\{[\s\S]*width:188px/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
