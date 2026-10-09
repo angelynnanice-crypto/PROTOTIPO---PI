@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=15">
+<link rel="stylesheet" href="visual-2026.css?v=16">
 </head>
 <body>
 
@@ -285,19 +285,20 @@
             </div>
           </header>
           <div class="stats-row kpi-grid">
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Atividades</span><span class="kpi-trend" id="trend-total">—</span></div><div class="num" id="stat-total">0</div><small>No período selecionado</small></div></div>
-            <div class="stat-card"><div class="stat-icon stat-icon--cyan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Horas</span><span class="kpi-trend" id="trend-hours">—</span></div><div class="num" id="stat-hours">0h</div><small>Tempo registrado</small></div></div>
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Colaboradores</span><span class="kpi-trend" id="trend-func">—</span></div><div class="num" id="stat-func">0</div><small>Com atividade registrada</small></div></div>
-            <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Setores</span><span class="kpi-trend" id="trend-setores">—</span></div><div class="num" id="stat-setores">0</div><small>Áreas movimentadas</small></div></div>
-            <div class="stat-card stat-card--alert"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Urgentes</span><span class="kpi-trend" id="trend-urgentes">—</span></div><div class="num" id="stat-urgentes">0</div><small>Exigem atenção imediata</small></div></div>
+            <div class="stat-card kpi--blue"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10M9 3v3h6V3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h5"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Atividades</span><span class="kpi-trend" id="trend-total">—</span></div><div class="num" id="stat-total">0</div><small>No período selecionado</small></div></div>
+            <div class="stat-card kpi--cyan"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Horas</span><span class="kpi-trend" id="trend-hours">—</span></div><div class="num" id="stat-hours">0h</div><small>Tempo registrado</small></div></div>
+            <div class="stat-card kpi--violet"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v2"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Colaboradores</span><span class="kpi-trend" id="trend-func">—</span></div><div class="num" id="stat-func">0</div><small>Com atividade registrada</small></div></div>
+            <div class="stat-card kpi--green"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Setores</span><span class="kpi-trend" id="trend-setores">—</span></div><div class="num" id="stat-setores">0</div><small>Áreas movimentadas</small></div></div>
+            <div class="stat-card stat-card--alert kpi--red"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg></div><div class="stat-content"><div class="stat-topline"><span class="label">Urgentes</span><span class="kpi-trend" id="trend-urgentes">—</span></div><div class="num" id="stat-urgentes">0</div><small>Exigem atenção imediata</small></div></div>
           </div>
-          <div class="dashboard-grid dashboard-grid--top">
+          <div class="dashboard-section-grid dashboard-section-grid--hero dashboard-grid dashboard-grid--top">
             <section class="panel chart-panel">
               <div class="panel-heading">
                 <div><span class="panel-index">01 • ÚLTIMOS 7 DIAS</span><h3>Movimento de atividades</h3></div>
                 <span class="panel-live"><i></i> DADOS ATUAIS</span>
               </div>
-              <div class="weekly-chart" id="weekly-chart" aria-label="Registros dos últimos sete dias"></div>
+              <div class="trend-legend"><span><i class="trend-dot trend-dot--activities"></i>Atividades</span><span><i class="trend-dot trend-dot--hours"></i>Horas</span></div>
+              <div class="weekly-chart" id="weekly-chart" aria-label="Evolução de atividades e horas nos últimos sete dias"></div>
             </section>
             <section class="panel chart-panel">
               <div class="panel-heading">
@@ -306,7 +307,7 @@
               <div class="donut-layout"><div class="donut-chart" id="type-donut"><div><strong id="donut-total">0</strong><span>TOTAL</span></div></div><div class="donut-legend" id="donut-legend"></div></div>
             </section>
           </div>
-          <div class="dashboard-grid dashboard-grid--bottom">
+          <div class="dashboard-section-grid dashboard-section-grid--details dashboard-grid dashboard-grid--bottom">
             <section class="panel chart-panel">
               <div class="panel-heading"><div><span class="panel-index">03 • CARGA OPERACIONAL</span><h3>Horas registradas por setor</h3></div></div>
               <div class="sector-bars" id="sector-hours"></div>
@@ -589,6 +590,6 @@
 
   <!-- SCRIPT -->
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=15"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
