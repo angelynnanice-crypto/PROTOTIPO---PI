@@ -38,8 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /href="visual-2026\.css\?v=19"/);
-  assert.match(html, /src="app\.js\?v=19"/);
+  assert.match(html, /href="visual-2026\.css\?v=20"/);
+  assert.match(html, /src="app\.js\?v=20"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -71,6 +71,14 @@ teste('organiza o dashboard V2 com cabeçalho compacto', () => {
   assert.match(html, /id="dashboard-updated"/);
   assert.match(html, /data-open-view="view-novo"/);
   assert.match(html, /id="dashboard-export"/);
+  assert.match(html, /id="dashboard-export"[\s\S]*Exportar PDF/);
+});
+
+teste('exporta o recorte atual do dashboard diretamente em PDF', () => {
+  assert.match(js, /dashboardExp\.addEventListener\('click', \(\) => exportarPDFExecutivo\(getDashboardRecords\(\), 'dashboard'\)\)/);
+  assert.match(js, /expPDF\.addEventListener\('click', \(\) => exportarPDFExecutivo\(\)\)/);
+  assert.doesNotMatch(js, /dashboardExp\.addEventListener\('click', \(\) => exportarCSV/);
+  assert.match(js, /function exportarPDFExecutivo\(protocolosRecebidos = null, origem = 'relatorio'\)/);
 });
 
 teste('oferece os três filtros executivos', () => {
@@ -224,16 +232,16 @@ teste('transforma a área de relatórios em um resumo executivo', () => {
   assert.match(html, /id="rep-type-chart"/);
 });
 
-teste('gera PDF executivo vetorial e mantém CSV como opção secundária', () => {
+teste('gera PDF executivo vetorial sem oferecer CSV na interface', () => {
   assert.match(html, /jspdf\.umd\.min\.js/);
   assert.match(html, /jspdf\.plugin\.autotable/);
   assert.match(html, /id="rep-export-pdf"/);
-  assert.match(html, /id="rep-export-csv"/);
+  assert.doesNotMatch(html, /id="rep-export-csv"/);
   assert.match(js, /function exportarPDFExecutivo/);
   assert.match(js, /new window\.jspdf\.jsPDF/);
   assert.match(js, /doc\.roundedRect/);
   assert.match(js, /doc\.autoTable/);
-  assert.match(js, /doc\.save\('centralizar-relatorio-executivo\.pdf'\)/);
+  assert.match(js, /doc\.save\(origem === 'dashboard' \? 'centralizar-dashboard-executivo\.pdf' : 'centralizar-relatorio-executivo\.pdf'\)/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
