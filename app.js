@@ -1080,7 +1080,7 @@ async function carregarDadosDemonstrativos() {
 // Quando o projeto ainda não possui registros, preparamos automaticamente a apresentação.
 // Se a política do banco impedir a gravação, os mesmos dados continuam disponíveis nesta sessão.
 async function garantirDadosDemonstrativos() {
-  if (State.protocols.length) return;
+  if (demoJaCarregada()) return;
   const registros = criarRegistrosDemonstrativos();
   const { error } = await sb.from('registros').insert(registros);
   if (error) {
@@ -1092,7 +1092,7 @@ async function garantirDadosDemonstrativos() {
 }
 
 function usarDadosDemonstrativosLocais(registros) {
-  State.protocols = registros.map((r, indice) => ({
+  const demonstrativos = registros.map((r, indice) => ({
     numero: indice + 1,
     id: `SIG-DEMO-${String(indice + 1).padStart(3, '0')}`,
     title: r.titulo,
@@ -1112,6 +1112,7 @@ function usarDadosDemonstrativosLocais(registros) {
     date: 'Dados de apresentação',
     history: []
   }));
+  State.protocols = [...State.protocols, ...demonstrativos];
 }
 
 /* ---------- Relatório executivo em PDF ---------- */
