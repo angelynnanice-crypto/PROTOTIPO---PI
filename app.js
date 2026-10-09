@@ -54,7 +54,6 @@ function initTheme() {
     });
   });
 }
-
 // Em telas pequenas o menu funciona como uma gaveta e não ocupa o conteúdo.
 function initMobileMenu() {
   const app = document.getElementById('app');
@@ -460,8 +459,12 @@ function initFilters() {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', renderReports);
   });
-  const exp = document.getElementById('rep-export');
-  if (exp) exp.addEventListener('click', () => exportarCSV(getRelatorio()));
+  const expCSV = document.getElementById('rep-export-csv');
+  if (expCSV) expCSV.addEventListener('click', () => exportarCSV(getRelatorio()));
+  const expPDF = document.getElementById('rep-export-pdf');
+  if (expPDF) expPDF.addEventListener('click', exportarPDFExecutivo);
+  const seedButton = document.getElementById('seed-demo-data');
+  if (seedButton) seedButton.addEventListener('click', carregarDadosDemonstrativos);
   const dashboardExp = document.getElementById('dashboard-export');
   if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getDashboardRecords()));
   const dashboardPeriod = document.getElementById('dashboard-period');
@@ -775,13 +778,52 @@ async function deleteProtocol(id) {
 
 // Mostramos o resumo das atividades para apoiar a consulta e prestação de contas.
 function renderReports() {
-  document.getElementById('rep-total').textContent = State.protocols.length;
-  document.getElementById('rep-urgent-count').textContent = State.protocols.filter(p => p.priority === 'Urgente').length;
+  const protocolos = getProtocolosRelatorio();
+  const minutosTotais = protocolos.reduce((total, p) => total + duracaoRegistro(p), 0);
+  document.getElementById('rep-total').textContent = protocolos.length;
+  document.getElementById('rep-hours').textContent = `${(minutosTotais / 60).toFixed(1).replace('.', ',')}h`;
+  document.getElementById('rep-people').textContent = new Set(protocolos.map(p => p.funcionario).filter(Boolean)).size;
+  document.getElementById('rep-sectors').textContent = new Set(protocolos.map(p => p.setor).filter(Boolean)).size;
+  document.getElementById('rep-urgent-count').textContent = protocolos.filter(p => p.priority === 'Urgente').length;
   const tb = document.querySelector('#rep-table tbody');
   const dados = getRelatorio();
   tb.innerHTML = dados.length
     ? dados.map(r => `<tr><td>${escapeHTML(r.funcionario)}</td><td>${escapeHTML(r.setor)}</td><td>${r.qtd}</td><td>${r.horas}</td></tr>`).join('')
     : '<tr><td colspan="4" class="empty">Nenhuma atividade no período.</td></tr>';
+  renderReportCharts(protocolos);
+}
+
+function duracaoRegistro(registro) {
+  if (!registro.inicio || !registro.fim || minutos(registro.fim) <= minutos(registro.inicio)) return 0;
+  return minutos(registro.fim) - minutos(registro.inicio);
+}
+
+function getProtocolosRelatorio() {
+  const de = document.getElementById('rep-inicio')?.value || '';
+  const ate = document.getElementById('rep-fim')?.value || '';
+  return State.protocols.filter(p => p.data && (!de || p.data >= de) && (!ate || p.data <= ate));
+}
+
+function renderReportCharts(protocolos) {
+  const setor = document.getElementById('rep-sector-chart');
+  const tipo = document.getElementById('rep-type-chart');
+  if (!setor || !tipo) return;
+  const setores = agrupar(protocolos, p => p.setor || 'Sem setor', p => duracaoRegistro(p) / 60).slice(0, 6);
+  const maiorSetor = Math.max(1, ...setores.map(item => item.valor));
+  setor.innerHTML = setores.length ? setores.map(item => `<div class="report-bar-row"><div><span>${escapeHTML(item.nome)}</span><strong>${item.valor.toFixed(1).replace('.', ',')}h</strong></div><i><b style="width:${Math.round(item.valor / maiorSetor * 100)}%"></b></i></div>`).join('') : estadoVazio('Nenhuma hora registrada no período.');
+
+  const cores = ['#4f97f5', '#35c2ca', '#43c592', '#f0a64b'];
+  const tipos = agrupar(protocolos, p => p.tipo || 'Não informado');
+  tipo.innerHTML = tipos.length ? tipos.map((item, indice) => `<div class="report-type-row"><i style="background:${cores[indice % cores.length]}"></i><span>${escapeHTML(item.nome)}</span><strong>${item.valor}</strong><em>${protocolos.length ? Math.round(item.valor / protocolos.length * 100) : 0}%</em></div>`).join('') : estadoVazio('Nenhum tipo de atividade no período.');
+}
+
+function agrupar(lista, obterNome, obterValor = () => 1) {
+  const mapa = {};
+  lista.forEach(item => {
+    const nome = obterNome(item);
+    mapa[nome] = (mapa[nome] || 0) + obterValor(item);
+  });
+  return Object.entries(mapa).map(([nome, valor]) => ({ nome, valor })).sort((a, b) => b.valor - a.valor);
 }
 
 /* ---------- Perfil ---------- */
@@ -947,22 +989,15 @@ function minutos(hhmm) {
 
 // Reunimos as atividades por funcionário e setor dentro do período escolhido.
 function getRelatorio() {
-  const de = document.getElementById('rep-inicio').value;
-  const ate = document.getElementById('rep-fim').value;
   const mapa = {};
-  State.protocols.forEach(p => {
+  getProtocolosRelatorio().forEach(p => {
     if (!p.funcionario || !p.data) return;
-    if (de && p.data < de) return;
-    if (ate && p.data > ate) return;
     const chave = p.funcionario + '|' + p.setor;
     if (!mapa[chave]) mapa[chave] = { funcionario: p.funcionario, setor: p.setor || '—', qtd: 0, min: 0 };
     mapa[chave].qtd++;
-    // Só somamos a duração quando os horários estão preenchidos.
-    if (p.inicio && p.fim && minutos(p.fim) > minutos(p.inicio)) {
-      mapa[chave].min += minutos(p.fim) - minutos(p.inicio);
-    }
+    mapa[chave].min += duracaoRegistro(p);
   });
-  return Object.values(mapa).map(r => ({ ...r, horas: (r.min / 60).toFixed(1) }));
+  return Object.values(mapa).map(r => ({ ...r, horas: (r.min / 60).toFixed(1) })).sort((a, b) => b.min - a.min);
 }
 
 // Criamos uma planilha CSV, que pode ser aberta no Excel ou LibreOffice.
@@ -976,4 +1011,160 @@ function exportarCSV(lista) {
   a.download = 'relatorio.csv';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- Dados para a apresentação ---------- */
+// Os registros abaixo usam a mesma tabela e os mesmos campos do formulário comum.
+function criarRegistrosDemonstrativos() {
+  const marcador = '[DEMO CENTRALIZAR]';
+  const pessoas = ['Amanda Souza', 'Bruno Martins', 'Carla Ribeiro', 'Diego Alves', 'Fernanda Lima', 'Gustavo Rocha'];
+  const setores = ['Operações', 'Manutenção', 'Logística', 'Qualidade', 'Administrativo'];
+  const atividades = [
+    ['Inspeção preventiva de equipamentos', 'Apoio operacional'],
+    ['Cobertura do turno operacional', 'Cobertura de horário'],
+    ['Acompanhamento de ordem de serviço', 'Apoio operacional'],
+    ['Organização de documentação técnica', 'Atividade extraordinária'],
+    ['Substituição em atividade programada', 'Substituição temporária'],
+    ['Conferência de materiais recebidos', 'Apoio operacional'],
+    ['Atualização de controle interno', 'Atividade extraordinária']
+  ];
+  const prioridades = ['Normal', 'Normal', 'Baixa', 'Alta', 'Normal', 'Urgente'];
+  const turnos = [['07:30', '11:30'], ['08:00', '12:00'], ['09:00', '13:30'], ['13:00', '17:00'], ['14:00', '18:30']];
+  const hoje = new Date();
+
+  return Array.from({ length: 45 }, (_, indice) => {
+    const [titulo, tipo] = atividades[indice % atividades.length];
+    const [inicio, fim] = turnos[indice % turnos.length];
+    const data = new Date(hoje);
+    data.setDate(hoje.getDate() - ((indice * 2 + indice % 5) % 89));
+    const funcionario = pessoas[indice % pessoas.length];
+    const cobertura = TIPOS_COBERTURA.includes(tipo);
+    return {
+      titulo,
+      funcionario,
+      setor: setores[(indice * 2) % setores.length],
+      tipo,
+      data: data.toISOString().slice(0, 10),
+      hora_inicio: inicio,
+      hora_fim: fim,
+      prioridade: prioridades[(indice * 5 + 1) % prioridades.length],
+      descricao: `${marcador} Registro demonstrativo criado para apresentação dos indicadores e relatórios.`,
+      autor_id: State.user.id,
+      autor_nome: State.user.name,
+      substituto_nome: cobertura ? funcionario : null,
+      substituto_turno: cobertura ? (indice % 2 ? 'Tarde' : 'Manhã') : null,
+      substituido_nome: cobertura ? pessoas[(indice + 2) % pessoas.length] : null,
+      substituido_turno: cobertura ? (indice % 2 ? 'Manhã' : 'Tarde') : null
+    };
+  });
+}
+
+function demoJaCarregada() {
+  return State.protocols.some(p => String(p.desc || '').includes('[DEMO CENTRALIZAR]'));
+}
+
+async function carregarDadosDemonstrativos() {
+  if (State.user.role !== 'gestor') { showToast('Apenas gestores podem carregar os dados de apresentação.'); return; }
+  if (demoJaCarregada()) { showToast('Os dados de apresentação já foram carregados.'); return; }
+  const botao = document.getElementById('seed-demo-data');
+  if (botao) { botao.disabled = true; botao.textContent = 'Carregando 45 registros...'; }
+  const registros = criarRegistrosDemonstrativos();
+  const { error } = await sb.from('registros').insert(registros);
+  if (botao) { botao.disabled = false; botao.textContent = 'Carregar dados de apresentação'; }
+  if (error) { console.error(error); showToast('Não foi possível carregar os dados de apresentação.'); return; }
+  await carregarDados();
+  renderApp();
+  showToast('45 registros de apresentação foram adicionados ao sistema.');
+}
+
+/* ---------- Relatório executivo em PDF ---------- */
+// O PDF é desenhado em vetores para continuar nítido na tela e na impressão.
+function exportarPDFExecutivo() {
+  if (!window.jspdf?.jsPDF) { showToast('O gerador de PDF ainda não foi carregado.'); return; }
+  const protocolos = getProtocolosRelatorio();
+  if (!protocolos.length) { showToast('Não há atividades no período selecionado.'); return; }
+  const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+  const largura = doc.internal.pageSize.getWidth();
+  const altura = doc.internal.pageSize.getHeight();
+  const cores = { navy: [13, 34, 55], blue: [62, 137, 219], cyan: [53, 194, 202], green: [67, 197, 146], violet: [143, 117, 229], orange: [240, 166, 75], red: [237, 98, 116], ink: [36, 55, 72], muted: [103, 123, 141], line: [222, 230, 237], pale: [245, 248, 251] };
+  const periodoInicio = document.getElementById('rep-inicio').value;
+  const periodoFim = document.getElementById('rep-fim').value;
+  const periodo = periodoInicio || periodoFim ? `${periodoInicio ? formatarData(periodoInicio) : 'Início'} a ${periodoFim ? formatarData(periodoFim) : 'Hoje'}` : 'Todo o histórico';
+  const horas = protocolos.reduce((total, p) => total + duracaoRegistro(p), 0) / 60;
+  const pessoas = new Set(protocolos.map(p => p.funcionario).filter(Boolean)).size;
+  const setoresTotal = new Set(protocolos.map(p => p.setor).filter(Boolean)).size;
+  const urgentes = protocolos.filter(p => p.priority === 'Urgente').length;
+
+  const cabecalho = (pagina) => {
+    doc.setFillColor(...cores.navy); doc.rect(0, 0, largura, 25, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text('CENTRALIZAR', 15, 12);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(159, 190, 216); doc.text('GESTÃO E REGISTRO DE ATIVIDADES FUNCIONAIS', 15, 18);
+    doc.setTextColor(220, 233, 244); doc.text(`RELATÓRIO EXECUTIVO  •  ${periodo}`, largura - 15, 15, { align: 'right' });
+    doc.setDrawColor(...cores.line); doc.line(15, altura - 13, largura - 15, altura - 13);
+    doc.setTextColor(...cores.muted); doc.setFontSize(8); doc.text(`Emitido em ${new Date().toLocaleString('pt-BR')}`, 15, altura - 7); doc.text(`Página ${pagina}`, largura - 15, altura - 7, { align: 'right' });
+  };
+
+  cabecalho(1);
+  doc.setTextColor(...cores.ink); doc.setFont('helvetica', 'bold'); doc.setFontSize(23); doc.text('Visão executiva da operação', 15, 39);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...cores.muted); doc.text('Síntese dos registros, carga de trabalho e prioridades do período selecionado.', 15, 46);
+
+  const indicadores = [
+    ['ATIVIDADES', String(protocolos.length), cores.blue], ['HORAS', `${horas.toFixed(1).replace('.', ',')}h`, cores.cyan],
+    ['COLABORADORES', String(pessoas), cores.violet], ['SETORES', String(setoresTotal), cores.green], ['URGENTES', String(urgentes), cores.red]
+  ];
+  indicadores.forEach(([rotulo, valor, cor], indice) => {
+    const x = 15 + indice * 36;
+    doc.setFillColor(...cores.pale); doc.setDrawColor(...cores.line); doc.roundedRect(x, 55, 32, 27, 3, 3, 'FD');
+    doc.setFillColor(...cor); doc.roundedRect(x, 55, 32, 2, 1, 1, 'F');
+    doc.setTextColor(...cores.muted); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.text(rotulo, x + 3, 64);
+    doc.setTextColor(...cores.ink); doc.setFontSize(16); doc.text(valor, x + 3, 76);
+  });
+
+  const setores = agrupar(protocolos, p => p.setor || 'Sem setor', p => duracaoRegistro(p) / 60).slice(0, 6);
+  const maiorSetor = Math.max(1, ...setores.map(item => item.valor));
+  doc.setFontSize(13); doc.setTextColor(...cores.ink); doc.text('Horas por setor', 15, 96);
+  setores.forEach((item, indice) => {
+    const y = 105 + indice * 10;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...cores.muted); doc.text(item.nome.slice(0, 25), 15, y);
+    doc.setFillColor(229, 236, 242); doc.roundedRect(58, y - 4, 75, 4, 2, 2, 'F');
+    doc.setFillColor(...cores.blue); doc.roundedRect(58, y - 4, Math.max(2, item.valor / maiorSetor * 75), 4, 2, 2, 'F');
+    doc.setTextColor(...cores.ink); doc.setFont('helvetica', 'bold'); doc.text(`${item.valor.toFixed(1).replace('.', ',')}h`, 138, y);
+  });
+
+  const tipos = agrupar(protocolos, p => p.tipo || 'Não informado');
+  doc.setFontSize(13); doc.setTextColor(...cores.ink); doc.text('Tipos de atividade', 15, 177);
+  tipos.forEach((item, indice) => {
+    const y = 187 + indice * 10;
+    const cor = [cores.blue, cores.cyan, cores.green, cores.orange][indice % 4];
+    doc.setFillColor(...cor); doc.circle(17, y - 1.5, 1.8, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...cores.ink); doc.text(item.nome, 22, y);
+    doc.setFont('helvetica', 'bold'); doc.text(`${item.valor}  (${Math.round(item.valor / protocolos.length * 100)}%)`, 105, y, { align: 'right' });
+  });
+
+  const prioridades = ['Urgente', 'Alta', 'Normal', 'Baixa'].map((nome, indice) => ({ nome, valor: protocolos.filter(p => (p.priority || 'Normal') === nome).length, cor: [cores.red, cores.orange, cores.blue, cores.green][indice] }));
+  doc.setFontSize(13); doc.text('Prioridades', 125, 96);
+  prioridades.forEach((item, indice) => {
+    const y = 108 + indice * 17;
+    doc.setFillColor(...item.cor); doc.circle(129, y - 2, 2.2, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...cores.muted); doc.text(item.nome, 135, y);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...cores.ink); doc.text(String(item.valor), 190, y, { align: 'right' });
+  });
+
+  const linhas = protocolos.map(p => [p.id, p.title, p.funcionario || '—', p.setor || '—', formatarData(p.data), p.priority || 'Normal', `${(duracaoRegistro(p) / 60).toFixed(1).replace('.', ',')}h`]);
+  doc.addPage(); cabecalho(2);
+  doc.setTextColor(...cores.ink); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text('Detalhamento das atividades', 15, 38);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...cores.muted); doc.text(`${protocolos.length} registros encontrados no período ${periodo}.`, 15, 45);
+  doc.autoTable({
+    startY: 52,
+    head: [['Registro', 'Atividade', 'Responsável', 'Setor', 'Data', 'Prioridade', 'Horas']],
+    body: linhas,
+    margin: { left: 15, right: 15, bottom: 19 },
+    styles: { font: 'helvetica', fontSize: 7.3, cellPadding: 2.5, textColor: cores.ink, lineColor: cores.line, lineWidth: .1 },
+    headStyles: { fillColor: cores.navy, textColor: [255, 255, 255], fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: cores.pale },
+    columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 42 }, 2: { cellWidth: 30 }, 3: { cellWidth: 24 }, 4: { cellWidth: 19 }, 5: { cellWidth: 19 }, 6: { cellWidth: 14, halign: 'right' } },
+    didDrawPage: dados => { if (dados.pageNumber > 1) cabecalho(dados.pageNumber + 1); }
+  });
+  doc.save('centralizar-relatorio-executivo.pdf');
+  showToast('Relatório PDF gerado com sucesso.');
 }
