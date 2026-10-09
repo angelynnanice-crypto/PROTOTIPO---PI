@@ -38,8 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /href="visual-2026\.css\?v=16"/);
-  assert.match(html, /src="app\.js\?v=16"/);
+  assert.match(html, /href="visual-2026\.css\?v=17"/);
+  assert.match(html, /src="app\.js\?v=17"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -181,6 +181,40 @@ teste('usa composição executiva rica sem voltar ao visual monocromático', () 
   assert.match(css, /--dash-orange/);
   assert.match(css, /--dash-green/);
   assert.match(css, /\.donut-chart\{[\s\S]*width:188px/);
+});
+
+teste('oferece carga demonstrativa persistente e protegida contra duplicação', () => {
+  assert.match(html, /id="seed-demo-data"/);
+  assert.match(html, /Carregar dados de apresentação/);
+  assert.match(js, /function criarRegistrosDemonstrativos/);
+  assert.match(js, /\[DEMO CENTRALIZAR\]/);
+  assert.match(js, /demoJaCarregada/);
+  assert.match(js, /\.from\('registros'\)\.insert\(registros\)/);
+});
+
+teste('distribui os dados de apresentação por todas as prioridades', () => {
+  assert.match(js, /prioridades\[\(indice \* 5 \+ 1\) % prioridades\.length\]/);
+});
+
+teste('transforma a área de relatórios em um resumo executivo', () => {
+  ['rep-total', 'rep-hours', 'rep-people', 'rep-sectors', 'rep-urgent-count'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"`));
+  });
+  assert.match(html, /class="report-kpi-grid"/);
+  assert.match(html, /id="rep-sector-chart"/);
+  assert.match(html, /id="rep-type-chart"/);
+});
+
+teste('gera PDF executivo vetorial e mantém CSV como opção secundária', () => {
+  assert.match(html, /jspdf\.umd\.min\.js/);
+  assert.match(html, /jspdf\.plugin\.autotable/);
+  assert.match(html, /id="rep-export-pdf"/);
+  assert.match(html, /id="rep-export-csv"/);
+  assert.match(js, /function exportarPDFExecutivo/);
+  assert.match(js, /new window\.jspdf\.jsPDF/);
+  assert.match(js, /doc\.roundedRect/);
+  assert.match(js, /doc\.autoTable/);
+  assert.match(js, /doc\.save\('centralizar-relatorio-executivo\.pdf'\)/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
