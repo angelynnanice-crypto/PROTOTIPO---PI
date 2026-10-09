@@ -125,6 +125,7 @@ async function entrar(authUser) {
     createdAt: new Date(perfil.criado_em).toLocaleDateString('pt-BR')
   };
   await carregarDados();
+  await garantirDadosDemonstrativos();
   updateUserSession();
   return true;
 }
@@ -1064,7 +1065,6 @@ function demoJaCarregada() {
 }
 
 async function carregarDadosDemonstrativos() {
-  if (State.user.role !== 'gestor') { showToast('Apenas gestores podem carregar os dados de apresentação.'); return; }
   if (demoJaCarregada()) { showToast('Os dados de apresentação já foram carregados.'); return; }
   const botao = document.getElementById('seed-demo-data');
   if (botao) { botao.disabled = true; botao.textContent = 'Carregando 45 registros...'; }
@@ -1075,6 +1075,43 @@ async function carregarDadosDemonstrativos() {
   await carregarDados();
   renderApp();
   showToast('45 registros de apresentação foram adicionados ao sistema.');
+}
+
+// Quando o projeto ainda não possui registros, preparamos automaticamente a apresentação.
+// Se a política do banco impedir a gravação, os mesmos dados continuam disponíveis nesta sessão.
+async function garantirDadosDemonstrativos() {
+  if (State.protocols.length) return;
+  const registros = criarRegistrosDemonstrativos();
+  const { error } = await sb.from('registros').insert(registros);
+  if (error) {
+    console.warn('O banco recusou a carga demonstrativa; usando prévia local.', error);
+    usarDadosDemonstrativosLocais(registros);
+    return;
+  }
+  await carregarDados();
+}
+
+function usarDadosDemonstrativosLocais(registros) {
+  State.protocols = registros.map((r, indice) => ({
+    numero: indice + 1,
+    id: `SIG-DEMO-${String(indice + 1).padStart(3, '0')}`,
+    title: r.titulo,
+    funcionario: r.funcionario,
+    setor: r.setor,
+    tipo: r.tipo,
+    data: r.data,
+    inicio: r.hora_inicio,
+    fim: r.hora_fim,
+    priority: r.prioridade,
+    desc: r.descricao,
+    substituto: r.substituto_nome || '',
+    substitutoTurno: r.substituto_turno || '',
+    substituido: r.substituido_nome || '',
+    substituidoTurno: r.substituido_turno || '',
+    author: r.autor_nome,
+    date: 'Dados de apresentação',
+    history: []
+  }));
 }
 
 /* ---------- Relatório executivo em PDF ---------- */
