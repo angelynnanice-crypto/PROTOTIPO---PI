@@ -39,7 +39,7 @@ teste('inicializa e salva a preferência de tema', () => {
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
   assert.match(html, /href="visual-2026\.css\?v=20"/);
-  assert.match(html, /src="app\.js\?v=20"/);
+  assert.match(html, /src="app\.js\?v=23"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -242,6 +242,16 @@ teste('gera PDF executivo vetorial sem oferecer CSV na interface', () => {
   assert.match(js, /doc\.roundedRect/);
   assert.match(js, /doc\.autoTable/);
   assert.match(js, /doc\.save\(origem === 'dashboard' \? 'centralizar-dashboard-executivo\.pdf' : 'centralizar-relatorio-executivo\.pdf'\)/);
+});
+
+teste('mantém gráficos do PDF em colunas sem sobreposição', () => {
+  assert.match(js, /const graficoSetor = \{ rotuloX: 15, barraX: 52, barraLargura: 43, valorX: 111 \}/);
+  assert.match(js, /const colunaPrioridadesX = 125;/);
+  assert.match(js, /margin: \{ top: 35, left: 15, right: 15, bottom: 19 \}/);
+  assert.match(js, /rowPageBreak: 'avoid'/);
+  assert.match(js, /showHead: 'everyPage'/);
+  assert.doesNotMatch(js, /roundedRect\(58, y - 4, 75/);
+  assert.doesNotMatch(js, /doc\.text\(`\$\{item\.valor[\s\S]*`, 138, y\)/);
 });
 
 console.log('Todos os testes de tema e navegação passaram.');
