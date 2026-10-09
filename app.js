@@ -1160,13 +1160,16 @@ function exportarPDFExecutivo(protocolosRecebidos = null, origem = 'relatorio') 
 
   const setores = agrupar(protocolos, p => p.setor || 'Sem setor', p => duracaoRegistro(p) / 60).slice(0, 6);
   const maiorSetor = Math.max(1, ...setores.map(item => item.valor));
-  doc.setFontSize(13); doc.setTextColor(...cores.ink); doc.text('Horas por setor', 15, 96);
+  const graficoSetor = { rotuloX: 15, barraX: 52, barraLargura: 43, valorX: 111 };
+  const colunaPrioridadesX = 125;
+  doc.setDrawColor(...cores.line); doc.line(117, 92, 117, 161);
+  doc.setFontSize(13); doc.setTextColor(...cores.ink); doc.text('Horas por setor', graficoSetor.rotuloX, 96);
   setores.forEach((item, indice) => {
     const y = 105 + indice * 10;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...cores.muted); doc.text(item.nome.slice(0, 25), 15, y);
-    doc.setFillColor(229, 236, 242); doc.roundedRect(58, y - 4, 75, 4, 2, 2, 'F');
-    doc.setFillColor(...cores.blue); doc.roundedRect(58, y - 4, Math.max(2, item.valor / maiorSetor * 75), 4, 2, 2, 'F');
-    doc.setTextColor(...cores.ink); doc.setFont('helvetica', 'bold'); doc.text(`${item.valor.toFixed(1).replace('.', ',')}h`, 138, y);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...cores.muted); doc.text(item.nome.slice(0, 18), graficoSetor.rotuloX, y);
+    doc.setFillColor(229, 236, 242); doc.roundedRect(graficoSetor.barraX, y - 4, graficoSetor.barraLargura, 4, 2, 2, 'F');
+    doc.setFillColor(...cores.blue); doc.roundedRect(graficoSetor.barraX, y - 4, Math.max(2, item.valor / maiorSetor * graficoSetor.barraLargura), 4, 2, 2, 'F');
+    doc.setTextColor(...cores.ink); doc.setFont('helvetica', 'bold'); doc.text(`${item.valor.toFixed(1).replace('.', ',')}h`, graficoSetor.valorX, y, { align: 'right' });
   });
 
   const tipos = agrupar(protocolos, p => p.tipo || 'Não informado');
@@ -1180,11 +1183,11 @@ function exportarPDFExecutivo(protocolosRecebidos = null, origem = 'relatorio') 
   });
 
   const prioridades = ['Urgente', 'Alta', 'Normal', 'Baixa'].map((nome, indice) => ({ nome, valor: protocolos.filter(p => (p.priority || 'Normal') === nome).length, cor: [cores.red, cores.orange, cores.blue, cores.green][indice] }));
-  doc.setFontSize(13); doc.text('Prioridades', 125, 96);
+  doc.setFontSize(13); doc.text('Prioridades', colunaPrioridadesX, 96);
   prioridades.forEach((item, indice) => {
     const y = 108 + indice * 17;
-    doc.setFillColor(...item.cor); doc.circle(129, y - 2, 2.2, 'F');
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...cores.muted); doc.text(item.nome, 135, y);
+    doc.setFillColor(...item.cor); doc.circle(colunaPrioridadesX + 4, y - 2, 2.2, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...cores.muted); doc.text(item.nome, colunaPrioridadesX + 10, y);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...cores.ink); doc.text(String(item.valor), 190, y, { align: 'right' });
   });
 
@@ -1196,12 +1199,14 @@ function exportarPDFExecutivo(protocolosRecebidos = null, origem = 'relatorio') 
     startY: 52,
     head: [['Registro', 'Atividade', 'Responsável', 'Setor', 'Data', 'Prioridade', 'Horas']],
     body: linhas,
-    margin: { left: 15, right: 15, bottom: 19 },
-    styles: { font: 'helvetica', fontSize: 7.3, cellPadding: 2.5, textColor: cores.ink, lineColor: cores.line, lineWidth: .1 },
+    margin: { top: 35, left: 15, right: 15, bottom: 19 },
+    styles: { font: 'helvetica', fontSize: 7.1, cellPadding: 2.1, textColor: cores.ink, lineColor: cores.line, lineWidth: .1 },
     headStyles: { fillColor: cores.navy, textColor: [255, 255, 255], fontStyle: 'bold' },
     alternateRowStyles: { fillColor: cores.pale },
     columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 42 }, 2: { cellWidth: 30 }, 3: { cellWidth: 24 }, 4: { cellWidth: 19 }, 5: { cellWidth: 19 }, 6: { cellWidth: 14, halign: 'right' } },
-    didDrawPage: dados => { if (dados.pageNumber > 1) cabecalho(dados.pageNumber + 1); }
+    rowPageBreak: 'avoid',
+    showHead: 'everyPage',
+    willDrawPage: dados => { if (dados.pageNumber > 1) cabecalho(dados.pageNumber + 1); }
   });
   doc.save(origem === 'dashboard' ? 'centralizar-dashboard-executivo.pdf' : 'centralizar-relatorio-executivo.pdf');
   showToast('Relatório PDF gerado com sucesso.');
