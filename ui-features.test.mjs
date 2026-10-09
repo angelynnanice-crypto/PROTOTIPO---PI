@@ -38,8 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /href="visual-2026\.css\?v=17"/);
-  assert.match(html, /src="app\.js\?v=17"/);
+  assert.match(html, /href="visual-2026\.css\?v=18"/);
+  assert.match(html, /src="app\.js\?v=18"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -190,6 +190,23 @@ teste('oferece carga demonstrativa persistente e protegida contra duplicação',
   assert.match(js, /\[DEMO CENTRALIZAR\]/);
   assert.match(js, /demoJaCarregada/);
   assert.match(js, /\.from\('registros'\)\.insert\(registros\)/);
+});
+
+teste('carrega automaticamente a apresentação quando o banco está vazio', () => {
+  assert.match(js, /await carregarDados\(\);\s*await garantirDadosDemonstrativos\(\);/);
+  assert.match(js, /async function garantirDadosDemonstrativos\(\)/);
+  assert.match(js, /if \(State\.protocols\.length\) return;/);
+});
+
+teste('mantém os gráficos preenchidos mesmo se o banco recusar a carga', () => {
+  assert.match(js, /function usarDadosDemonstrativosLocais\(registros\)/);
+  assert.match(js, /if \(error\) \{[\s\S]*usarDadosDemonstrativosLocais\(registros\)/);
+});
+
+teste('permite carregar a apresentação sem esconder a ação do analista', () => {
+  assert.match(html, /id="seed-demo-data"/);
+  assert.doesNotMatch(html, /class="btn-secondary gestor-only" id="seed-demo-data"/);
+  assert.doesNotMatch(js, /Apenas gestores podem carregar os dados de apresentação/);
 });
 
 teste('distribui os dados de apresentação por todas as prioridades', () => {
