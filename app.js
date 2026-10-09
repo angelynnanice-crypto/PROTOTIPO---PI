@@ -582,17 +582,40 @@ function renderOperationalPanels(protocols = getDashboardRecords()) {
   const attention = document.getElementById('attention-list');
   if (!weekly || !donut || !legend || !sectors || !attention) return;
 
-  // Montamos as sete colunas usando a data de cada registro.
+  // O gráfico combina volume e horas reais dos últimos sete dias.
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   const dias = Array.from({ length: 7 }, (_, indice) => {
     const data = new Date(hoje);
     data.setDate(hoje.getDate() - (6 - indice));
     const iso = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
-    return { iso, rotulo: data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), quantidade: protocols.filter(p => p.data === iso).length };
+    const registros = protocols.filter(p => p.data === iso);
+    const horas = registros.reduce((total, p) => {
+      if (!p.inicio || !p.fim || minutos(p.fim) <= minutos(p.inicio)) return total;
+      return total + (minutos(p.fim) - minutos(p.inicio)) / 60;
+    }, 0);
+    return { iso, rotulo: data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), quantidade: registros.length, horas };
   });
-  const maiorDia = Math.max(1, ...dias.map(d => d.quantidade));
-  weekly.innerHTML = dias.map(d => `<div class="week-column"><strong>${d.quantidade}</strong><span class="week-bar"><i style="height:${Math.max(6, Math.round((d.quantidade / maiorDia) * 100))}%"></i></span><small>${d.rotulo}</small></div>`).join('');
+  const largura = 760;
+  const altura = 230;
+  const margem = { x: 42, topo: 20, base: 38 };
+  const areaLargura = largura - margem.x * 2;
+  const areaAltura = altura - margem.topo - margem.base;
+  const maiorAtividade = Math.max(1, ...dias.map(d => d.quantidade));
+  const maiorHora = Math.max(1, ...dias.map(d => d.horas));
+  const pontos = (campo, maximo) => dias.map((d, indice) => ({
+    x: margem.x + (areaLargura / (dias.length - 1)) * indice,
+    y: margem.topo + areaAltura - (d[campo] / maximo) * areaAltura
+  }));
+  const atividadePontos = pontos('quantidade', maiorAtividade);
+  const horaPontos = pontos('horas', maiorHora);
+  const caminho = lista => lista.map((p, indice) => `${indice ? 'L' : 'M'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const area = `${caminho(atividadePontos)} L ${atividadePontos.at(-1).x.toFixed(1)} ${(margem.topo + areaAltura).toFixed(1)} L ${atividadePontos[0].x.toFixed(1)} ${(margem.topo + areaAltura).toFixed(1)} Z`;
+  const linhas = [0, .25, .5, .75, 1].map(fracao => {
+    const y = margem.topo + areaAltura * fracao;
+    return `<line class="trend-grid-line" x1="${margem.x}" y1="${y}" x2="${largura - margem.x}" y2="${y}"/>`;
+  }).join('');
+  weekly.innerHTML = `<svg class="trend-svg" viewBox="0 0 ${largura} ${altura}" role="img" aria-label="Atividades e horas registradas por dia"><defs><linearGradient id="trend-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f97f5" stop-opacity=".38"/><stop offset="1" stop-color="#4f97f5" stop-opacity="0"/></linearGradient></defs>${linhas}<path class="trend-area" d="${area}"/><path class="trend-line trend-line--activities" d="${caminho(atividadePontos)}"/><path class="trend-line trend-line--hours" d="${caminho(horaPontos)}"/>${atividadePontos.map((p, i) => `<g class="trend-point"><circle cx="${p.x}" cy="${p.y}" r="5"/><title>${dias[i].rotulo}: ${dias[i].quantidade} atividade(s)</title></g>`).join('')}${horaPontos.map((p, i) => `<g class="trend-point trend-point--hours"><circle cx="${p.x}" cy="${p.y}" r="4"/><title>${dias[i].rotulo}: ${dias[i].horas.toFixed(1).replace('.', ',')} h</title></g>`).join('')}${dias.map((d, i) => `<text class="trend-label" x="${atividadePontos[i].x}" y="${altura - 10}" text-anchor="middle">${escapeHTML(d.rotulo)}</text>`).join('')}</svg>`;
 
   // O gráfico de rosca usa uma cor para cada tipo de atividade.
   const tipos = [
