@@ -460,14 +460,12 @@ function initFilters() {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', renderReports);
   });
-  const expCSV = document.getElementById('rep-export-csv');
-  if (expCSV) expCSV.addEventListener('click', () => exportarCSV(getRelatorio()));
   const expPDF = document.getElementById('rep-export-pdf');
-  if (expPDF) expPDF.addEventListener('click', exportarPDFExecutivo);
+  if (expPDF) expPDF.addEventListener('click', () => exportarPDFExecutivo());
   const seedButton = document.getElementById('seed-demo-data');
   if (seedButton) seedButton.addEventListener('click', carregarDadosDemonstrativos);
   const dashboardExp = document.getElementById('dashboard-export');
-  if (dashboardExp) dashboardExp.addEventListener('click', () => exportarCSV(getDashboardRecords()));
+  if (dashboardExp) dashboardExp.addEventListener('click', () => exportarPDFExecutivo(getDashboardRecords(), 'dashboard'));
   const dashboardPeriod = document.getElementById('dashboard-period');
   if (dashboardPeriod) dashboardPeriod.addEventListener('change', () => {
     State.dashboardPeriod = dashboardPeriod.value;
@@ -1117,9 +1115,9 @@ function usarDadosDemonstrativosLocais(registros) {
 
 /* ---------- Relatório executivo em PDF ---------- */
 // O PDF é desenhado em vetores para continuar nítido na tela e na impressão.
-function exportarPDFExecutivo() {
+function exportarPDFExecutivo(protocolosRecebidos = null, origem = 'relatorio') {
   if (!window.jspdf?.jsPDF) { showToast('O gerador de PDF ainda não foi carregado.'); return; }
-  const protocolos = getProtocolosRelatorio();
+  const protocolos = protocolosRecebidos || getProtocolosRelatorio();
   if (!protocolos.length) { showToast('Não há atividades no período selecionado.'); return; }
   const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
   const largura = doc.internal.pageSize.getWidth();
@@ -1127,7 +1125,9 @@ function exportarPDFExecutivo() {
   const cores = { navy: [13, 34, 55], blue: [62, 137, 219], cyan: [53, 194, 202], green: [67, 197, 146], violet: [143, 117, 229], orange: [240, 166, 75], red: [237, 98, 116], ink: [36, 55, 72], muted: [103, 123, 141], line: [222, 230, 237], pale: [245, 248, 251] };
   const periodoInicio = document.getElementById('rep-inicio').value;
   const periodoFim = document.getElementById('rep-fim').value;
-  const periodo = periodoInicio || periodoFim ? `${periodoInicio ? formatarData(periodoInicio) : 'Início'} a ${periodoFim ? formatarData(periodoFim) : 'Hoje'}` : 'Todo o histórico';
+  const periodoPainel = document.getElementById('dashboard-period')?.selectedOptions?.[0]?.textContent || 'Período selecionado';
+  const periodoRelatorio = periodoInicio || periodoFim ? `${periodoInicio ? formatarData(periodoInicio) : 'Início'} a ${periodoFim ? formatarData(periodoFim) : 'Hoje'}` : 'Todo o histórico';
+  const periodo = origem === 'dashboard' ? periodoPainel : periodoRelatorio;
   const horas = protocolos.reduce((total, p) => total + duracaoRegistro(p), 0) / 60;
   const pessoas = new Set(protocolos.map(p => p.funcionario).filter(Boolean)).size;
   const setoresTotal = new Set(protocolos.map(p => p.setor).filter(Boolean)).size;
@@ -1203,6 +1203,6 @@ function exportarPDFExecutivo() {
     columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 42 }, 2: { cellWidth: 30 }, 3: { cellWidth: 24 }, 4: { cellWidth: 19 }, 5: { cellWidth: 19 }, 6: { cellWidth: 14, halign: 'right' } },
     didDrawPage: dados => { if (dados.pageNumber > 1) cabecalho(dados.pageNumber + 1); }
   });
-  doc.save('centralizar-relatorio-executivo.pdf');
+  doc.save(origem === 'dashboard' ? 'centralizar-dashboard-executivo.pdf' : 'centralizar-relatorio-executivo.pdf');
   showToast('Relatório PDF gerado com sucesso.');
 }
