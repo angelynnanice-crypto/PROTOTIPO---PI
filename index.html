@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="visual-2026.css?v=16">
+<link rel="stylesheet" href="visual-2026.css?v=17">
 </head>
 <body>
 
@@ -480,29 +480,39 @@
 
                <!-- RELATÓRIOS -->
         <div id="view-relatorios" class="view">
-          <div class="topbar">
+          <div class="topbar report-topbar">
             <div>
               <h2>Relatórios de atividades</h2>
-              <p class="sub">Consolidação das atividades registradas.</p>
+              <p class="sub">Indicadores consolidados para acompanhamento e tomada de decisão.</p>
             </div>
+            <button type="button" class="btn-secondary gestor-only" id="seed-demo-data" style="display:none">Carregar dados de apresentação</button>
           </div>
 
-          <div class="panel">
-            <h3>Sumário</h3>
-            <div class="report-summary">
-              <div><span>Total de registros</span><strong id="rep-total">0</strong></div>
-              <div><span>Volume Crítico (Urgente)</span><strong id="rep-urgent-count">0</strong></div>
-            </div>
+          <div class="report-kpi-grid">
+            <div class="report-kpi report-kpi--blue"><span>Atividades</span><strong id="rep-total">0</strong><small>No período filtrado</small></div>
+            <div class="report-kpi report-kpi--cyan"><span>Horas registradas</span><strong id="rep-hours">0h</strong><small>Carga operacional</small></div>
+            <div class="report-kpi report-kpi--violet"><span>Colaboradores</span><strong id="rep-people">0</strong><small>Profissionais envolvidos</small></div>
+            <div class="report-kpi report-kpi--green"><span>Setores</span><strong id="rep-sectors">0</strong><small>Áreas movimentadas</small></div>
+            <div class="report-kpi report-kpi--red"><span>Urgentes</span><strong id="rep-urgent-count">0</strong><small>Atenção imediata</small></div>
           </div>
 
-          <div class="panel">
-            <h3>Atividades por funcionário e setor</h3>
-            <p class="panel-sub">Filtre por período e exporte em CSV.</p>
-            <div class="filters-row">
+          <div class="panel report-control-panel">
+            <div><span class="panel-index">PERÍODO DO RELATÓRIO</span><h3>Relatório executivo</h3><p class="panel-sub">O PDF usa exatamente o período selecionado abaixo.</p></div>
+            <div class="filters-row report-actions">
               <input type="date" id="rep-inicio" title="De">
               <input type="date" id="rep-fim" title="Até">
-              <button type="button" class="btn-primary btn-sm" id="rep-export">Exportar CSV</button>
+              <button type="button" class="btn-primary btn-sm" id="rep-export-pdf">Gerar PDF executivo</button>
+              <button type="button" class="btn-secondary btn-sm" id="rep-export-csv">Exportar CSV</button>
             </div>
+          </div>
+
+          <div class="report-chart-grid">
+            <section class="panel"><div class="panel-heading"><div><span class="panel-index">DISTRIBUIÇÃO OPERACIONAL</span><h3>Horas por setor</h3></div></div><div class="report-bar-chart" id="rep-sector-chart"></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="panel-index">COMPOSIÇÃO DO TRABALHO</span><h3>Tipos de atividade</h3></div></div><div class="report-type-chart" id="rep-type-chart"></div></section>
+          </div>
+
+          <div class="panel report-table-panel">
+            <div class="panel-heading"><div><span class="panel-index">DETALHAMENTO</span><h3>Atividades por funcionário e setor</h3></div><span class="panel-code">DADOS CONSOLIDADOS</span></div>
             <div style="overflow-x:auto;">
               <table id="rep-table">
                 <thead><tr><th>Funcionário</th><th>Setor</th><th>Atividades</th><th>Horas</th></tr></thead>
@@ -590,6 +600,8 @@
 
   <!-- SCRIPT -->
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=16"></script>
+   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+   <script src="app.js?v=17"></script>
 </body>
 </html>
