@@ -38,8 +38,8 @@ teste('inicializa e salva a preferência de tema', () => {
 });
 
 teste('impede que o navegador reutilize o JavaScript antigo', () => {
-  assert.match(html, /href="visual-2026\.css\?v=18"/);
-  assert.match(html, /src="app\.js\?v=18"/);
+  assert.match(html, /href="visual-2026\.css\?v=19"/);
+  assert.match(html, /src="app\.js\?v=19"/);
 });
 
 teste('controla abertura e fechamento do menu móvel', () => {
@@ -192,15 +192,17 @@ teste('oferece carga demonstrativa persistente e protegida contra duplicação',
   assert.match(js, /\.from\('registros'\)\.insert\(registros\)/);
 });
 
-teste('carrega automaticamente a apresentação quando o banco está vazio', () => {
+teste('carrega automaticamente a apresentação quando o pacote demonstrativo não existe', () => {
   assert.match(js, /await carregarDados\(\);\s*await garantirDadosDemonstrativos\(\);/);
   assert.match(js, /async function garantirDadosDemonstrativos\(\)/);
-  assert.match(js, /if \(State\.protocols\.length\) return;/);
+  assert.match(js, /if \(demoJaCarregada\(\)\) return;/);
+  assert.doesNotMatch(js, /function garantirDadosDemonstrativos\(\) \{\s*if \(State\.protocols\.length\) return;/);
 });
 
 teste('mantém os gráficos preenchidos mesmo se o banco recusar a carga', () => {
   assert.match(js, /function usarDadosDemonstrativosLocais\(registros\)/);
   assert.match(js, /if \(error\) \{[\s\S]*usarDadosDemonstrativosLocais\(registros\)/);
+  assert.match(js, /State\.protocols = \[\.\.\.State\.protocols, \.\.\.demonstrativos\]/);
 });
 
 teste('permite carregar a apresentação sem esconder a ação do analista', () => {
