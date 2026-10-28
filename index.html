@@ -141,7 +141,7 @@
               <option>Atividade extraordinária</option>
             </select>
           </div>
-          <div class="field"><label for="upd-data">Data</label><input type="date" id="upd-data" required></div>
+          <div class="field"><label for="upd-data">Data</label><input type="date" id="upd-data" min="2000-01-01" max="2099-12-31" required></div>
           <div class="field"><label for="upd-inicio">Hora de início</label><input type="time" id="upd-inicio" required></div>
           <div class="field"><label for="upd-fim">Hora de fim</label><input type="time" id="upd-fim" required></div>
           <div class="field">
@@ -367,8 +367,8 @@
                 <option>Apoio operacional</option>
                 <option>Atividade extraordinária</option>
               </select>
-              <input type="date" id="filter-inicio" title="De">
-              <input type="date" id="filter-fim" title="Até">
+              <input type="date" id="filter-inicio" title="De" min="2000-01-01" max="2099-12-31">
+              <input type="date" id="filter-fim" title="Até" min="2000-01-01" max="2099-12-31">
             </div>
             <div style="overflow-x:auto;">
               <table id="protocols-table">
@@ -423,7 +423,7 @@
                 </div>
                 <div class="field">
                   <label for="proto-data">Data</label>
-                  <input type="date" id="proto-data" required>
+                  <input type="date" id="proto-data" min="2000-01-01" max="2099-12-31" required>
                 </div>
                 <div class="field">
                   <label for="proto-inicio">Hora de início</label>
@@ -499,8 +499,8 @@
           <div class="panel report-control-panel">
             <div><span class="panel-index">PERÍODO DO RELATÓRIO</span><h3>Relatório executivo</h3><p class="panel-sub">O PDF usa exatamente o período selecionado abaixo.</p></div>
             <div class="filters-row report-actions">
-              <input type="date" id="rep-inicio" title="De">
-              <input type="date" id="rep-fim" title="Até">
+              <input type="date" id="rep-inicio" title="De" min="2000-01-01" max="2099-12-31">
+              <input type="date" id="rep-fim" title="Até" min="2000-01-01" max="2099-12-31">
               <button type="button" class="btn-primary btn-sm" id="rep-export-pdf">Gerar PDF executivo</button>
             </div>
           </div>
@@ -601,6 +601,6 @@
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app.js?v=23"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

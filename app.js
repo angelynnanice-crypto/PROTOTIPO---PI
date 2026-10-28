@@ -258,6 +258,9 @@ function initUpdateModal() {
     if (!novo.title || !novo.funcionario || !novo.setor || !novo.data || !novo.inicio || !novo.fim) {
       showToast('Preencha os campos principais da atividade.'); return;
     }
+    if (!dataValida(novo.data)) {
+  showToast('Informe uma data válida entre 2000 e 2099.'); return;
+}
     if (novo.fim <= novo.inicio) {
       showToast('A hora final precisa ser depois da inicial.'); return;
     }
@@ -413,6 +416,9 @@ function initForms() {
     const fim = document.getElementById('proto-fim').value;
     const tipo = document.getElementById('proto-tipo').value;
     const cob = lerCobertura('proto', tipo);
+    if (!dataValida(document.getElementById('proto-data').value)) {
+  showToast('Informe uma data válida entre 2000 e 2099.'); return;
+}
     // Não aceitamos um horário final anterior ou igual ao inicial.
     if (fim <= inicio) { showToast('A hora de fim precisa ser depois da hora de início.'); return; }
     if (TIPOS_COBERTURA.includes(tipo) && (!cob.substituto || !cob.substituido)) {
@@ -557,9 +563,9 @@ function renderCommandCenter(protocols = getDashboardRecords()) {
   if (!priority || !people || !updated) return;
   const priorities = [
     { name: 'Urgente', color: '#ff6b6b' },
-    { name: 'Alta', color: '#ffb454' },
-    { name: 'Normal', color: '#58a9ee' },
-    { name: 'Baixa', color: '#55d6a0' }
+    { name: 'Alta', color: '#f1ff54' },
+    { name: 'Normal', color: '#35be33' },
+    { name: 'Baixa', color: '#6380dd' }
   ].map(item => ({ ...item, count: protocols.filter(p => (p.priority || 'Normal') === item.name).length }));
   const priorityMax = Math.max(1, ...priorities.map(item => item.count));
   priority.innerHTML = priorities.map(item => `<div class="priority-row"><div><i style="background:${item.color}"></i><span>${item.name}</span><strong>${item.count}</strong></div><b><span style="width:${Math.round((item.count / priorityMax) * 100)}%;background:${item.color}"></span></b></div>`).join('');
@@ -1211,3 +1217,21 @@ function exportarPDFExecutivo(protocolosRecebidos = null, origem = 'relatorio') 
   doc.save(origem === 'dashboard' ? 'centralizar-dashboard-executivo.pdf' : 'centralizar-relatorio-executivo.pdf');
   showToast('Relatório PDF gerado com sucesso.');
 }
+
+/* ---------- Limite de ano nos campos de data ---------- */
+
+const DATA_MIN = '2000-01-01';
+const DATA_MAX = '2099-12-31';
+
+function dataValida(iso) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso || '') && iso >= DATA_MIN && iso <= DATA_MAX;
+}
+
+function limitarCamposData() {
+  document.querySelectorAll('input[type="date"]').forEach(campo => {
+    campo.min = DATA_MIN;
+    campo.max = DATA_MAX;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', limitarCamposData);
